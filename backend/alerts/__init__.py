@@ -1,0 +1,1 @@
+"""JalaNetra alerts package."""

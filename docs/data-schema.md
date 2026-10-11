@@ -1,0 +1,59 @@
+# JalaNetra Data Schema & Real CGWB Dataset Specifications
+
+## 1. Primary Groundwater Dataset Details
+- **Exact File Name:** `gwl_manual_quarterly_cgwb_ka_1991_2020.csv`
+- **Location:** `data/raw/groundwater/gwl_manual_quarterly_cgwb_ka_1991_2020.csv`
+- **Origin Agency:** Central Ground Water Board (CGWB) / National Water Development Agency (NWIC)
+- **Data Freshness Statement:**
+  > **“Quarterly government observations (1996–2020); not live groundwater sensor data.”**
+
+## 2. Row Counts & Spatial Filtering
+- **Row count before filtering:** 104,781 rows (Entire State of Karnataka across 30 districts)
+- **Filtering Column:** `District` (matched for case-insensitive `"Dakshin"`)
+- **Row count after filtering:** **4,962 rows**
+- **Unique Monitoring Stations in Dakshina Kannada:** **115 stations**
+- **Date Range Detected:** `1996-01-05` to `2020-11-30` (Quarterly observations: Jan, May, Aug, Nov)
+
+## 3. Actual Source Columns vs. Canonical JalaNetra Schema
+
+| Source CSV Column Name | Canonical Schema Field | Data Type | Notes |
+|---|---|---|---|
+| `Data Acquisition Time` | `observation_date` | `datetime64[ns]` | Parsed with `dayfirst=True` (e.g. `05-01-2013 06:00`) |
+| `Station` | `station_id` | `string` | Station/well name (e.g., `Surathkal`, `Kankanadi`, `Mangalore Lalbhag`) |
+| `District` | `district` | `string` | Filtered and normalized to `Dakshina Kannada` |
+| `Groundwater Level Quarterly Manual (meter)` | `groundwater_depth_m` | `float64` | Depth to water table below ground level in metres |
+| `Latitude` | `latitude` | `float64` | Geodetic latitude (WGS84, e.g. `12.8694`) |
+| `Longitude` | `longitude` | `float64` | Geodetic longitude (WGS84, e.g. `74.8792`) |
+| *(File path)* | `source` | `string` | Stamped as `gwl_manual_quarterly_cgwb_ka_1991_2020.csv` |
+
+### Additional CSV Attributes Present (Metadata Passthrough)
+- `SlNo`: Numeric sequential identifier
+- `Agency`: `CGWB`
+- `State LGD Code`: `29` (Karnataka)
+- `District LGD Code`: `531`
+- `Tehsil` / `Block` / `Village` / `River` / `Basin` / `RL_MSL`
+
+## 4. Ward Spatial Association in Mangaluru
+
+| Ward ID | Ward Name | Predefined Coordinates | Associated CGWB Wells (Nearest) | Real Obs Count |
+|---|---|---|---|---|
+| `dk-kodialbail` | Kodialbail | 12.8700, 74.8800 | `Kankanadi`, `Padil` | 55 |
+| `dk-kankanady` | Kankanady | 12.9100, 74.8600 | `Kankanadi`, `Padil`, `Kenjaru` | 81 |
+| `dk-kadri` | Kadri | 12.8800, 74.8500 | `Mangalore Lalbhag`, `Mangalore Attawara`, `Mangalore Bandaru` | 77 |
+| `dk-surathkal` | Surathkal | 13.0000, 74.7900 | `Surathkal`, `Mukka`, `Bala` | 148 |
+| `dk-moodbidri` | Moodbidri | 12.9600, 74.9900 | `Garadi`, `Kinni Kambala`, `Perar` | 82 |
+
+## 5. Synthetic Fallback Policy
+- For wards without sufficient real local observations, synthetic seasonal benchmarks (`SEASONAL_BASELINE_DEPTH`) are used as fallback.
+- In all API responses and UI panels, fallback values are clearly tagged with `"synthetic": true`.
+- Real historical data is **never** presented as live real-time sensor streams; real historical records are marked with their true acquisition date and labeled as historical CGWB observations.
+
+## 6. Stale-Data Guardrail Fields (`MAX_CURRENT_FORECAST_AGE_DAYS = 180`)
+When a verified observation is older than 180 days:
+- `forecast_current` (`boolean`): `false`
+- `forecast_status` (`string`): `"historical_context_only"`
+- `observation_age_days` (`integer`): Computed difference between `date.today()` and observation date
+- `risk_level` (`string`): `"historical_context"`
+- `days_to_dry_estimate` (`null`): Nullified to prevent false current alarms
+- `book_tanker_by` (`null`): Nullified to prevent false tanker scheduling dates for historical records
+- `recommended_action` (`string`): Guidance to record ground reports before making decisions

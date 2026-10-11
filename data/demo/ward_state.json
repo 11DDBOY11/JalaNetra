@@ -1,0 +1,2032 @@
+{
+  "generated_at": "2026-10-11T05:54:41.418041Z",
+  "data_mode": "hybrid",
+  "synthetic": false,
+  "groundwater_source_mode": "real_historical",
+  "rainfall_source_mode": "synthetic_baseline",
+  "ward_estimate_mode": "model_assisted",
+  "wards": [
+    {
+      "ward_id": "dk-kodialbail",
+      "name": "Kodialbail",
+      "display_name": "Kodialbail Ward",
+      "latitude": 12.87,
+      "longitude": 74.88,
+      "population_approx": 18000,
+      "area_sqkm": 3.2,
+      "well_ids": [
+        "Kankanadi",
+        "Padil",
+        "DK-WELL-001"
+      ],
+      "groundwater_depth_m": 10.73,
+      "depth_observed_at": "2020-11-30",
+      "depth_trend_m_per_month": -1.52,
+      "observations_count": 55,
+      "synthetic": false,
+      "groundwater_synthetic": false,
+      "matched_station": "Padil",
+      "freshness_disclosure": "Historical quarterly government groundwater observations; not live groundwater sensor data.",
+      "data_age_days": 2141,
+      "rainfall_rainfall_7d_mm": 12.8,
+      "rainfall_rainfall_30d_mm": 156.4,
+      "rainfall_seasonal_baseline_7d_mm": 45.0,
+      "rainfall_synthetic": true,
+      "data_mode": "hybrid",
+      "last_updated": "2026-10-11T05:54:41.384596Z",
+      "groundwater_series": [
+        {
+          "date": "2005-01-05",
+          "depth_m": 9.44,
+          "synthetic": false
+        },
+        {
+          "date": "2005-05-15",
+          "depth_m": 9.75,
+          "synthetic": false
+        },
+        {
+          "date": "2005-08-25",
+          "depth_m": 8.18,
+          "synthetic": false
+        },
+        {
+          "date": "2005-11-05",
+          "depth_m": 9.2,
+          "synthetic": false
+        },
+        {
+          "date": "2006-05-15",
+          "depth_m": 7.85,
+          "synthetic": false
+        },
+        {
+          "date": "2006-08-25",
+          "depth_m": 8.45,
+          "synthetic": false
+        },
+        {
+          "date": "2006-11-05",
+          "depth_m": 7.66,
+          "synthetic": false
+        },
+        {
+          "date": "2007-01-05",
+          "depth_m": 9.66,
+          "synthetic": false
+        },
+        {
+          "date": "2007-05-15",
+          "depth_m": 9.62,
+          "synthetic": false
+        },
+        {
+          "date": "2007-08-25",
+          "depth_m": 4.6,
+          "synthetic": false
+        },
+        {
+          "date": "2007-11-05",
+          "depth_m": 5.84,
+          "synthetic": false
+        },
+        {
+          "date": "2008-01-05",
+          "depth_m": 8.45,
+          "synthetic": false
+        },
+        {
+          "date": "2008-05-15",
+          "depth_m": 9.6,
+          "synthetic": false
+        },
+        {
+          "date": "2008-08-25",
+          "depth_m": 8.87,
+          "synthetic": false
+        },
+        {
+          "date": "2008-11-05",
+          "depth_m": 8.95,
+          "synthetic": false
+        },
+        {
+          "date": "2009-01-05",
+          "depth_m": 8.83,
+          "synthetic": false
+        },
+        {
+          "date": "2009-05-15",
+          "depth_m": 9.49,
+          "synthetic": false
+        },
+        {
+          "date": "2009-08-25",
+          "depth_m": 6.65,
+          "synthetic": false
+        },
+        {
+          "date": "2009-11-05",
+          "depth_m": 8.15,
+          "synthetic": false
+        },
+        {
+          "date": "2010-01-05",
+          "depth_m": 4.0,
+          "synthetic": false
+        },
+        {
+          "date": "2010-05-15",
+          "depth_m": 8.68,
+          "synthetic": false
+        },
+        {
+          "date": "2010-08-25",
+          "depth_m": 6.85,
+          "synthetic": false
+        },
+        {
+          "date": "2010-11-05",
+          "depth_m": 7.2,
+          "synthetic": false
+        },
+        {
+          "date": "2011-01-05",
+          "depth_m": 8.33,
+          "synthetic": false
+        },
+        {
+          "date": "2012-11-05",
+          "depth_m": 8.65,
+          "synthetic": false
+        },
+        {
+          "date": "2013-01-05",
+          "depth_m": 10.0,
+          "synthetic": false
+        },
+        {
+          "date": "2013-08-25",
+          "depth_m": 6.2,
+          "synthetic": false
+        },
+        {
+          "date": "2013-11-05",
+          "depth_m": 10.05,
+          "synthetic": false
+        },
+        {
+          "date": "2014-05-15",
+          "depth_m": 11.15,
+          "synthetic": false
+        },
+        {
+          "date": "2014-08-25",
+          "depth_m": 7.85,
+          "synthetic": false
+        },
+        {
+          "date": "2014-11-05",
+          "depth_m": 7.45,
+          "synthetic": false
+        },
+        {
+          "date": "2015-01-05",
+          "depth_m": 10.9,
+          "synthetic": false
+        },
+        {
+          "date": "2015-05-15",
+          "depth_m": 6.51,
+          "synthetic": false
+        },
+        {
+          "date": "2015-08-25",
+          "depth_m": 5.31,
+          "synthetic": false
+        },
+        {
+          "date": "2015-11-05",
+          "depth_m": 10.25,
+          "synthetic": false
+        },
+        {
+          "date": "2016-01-05",
+          "depth_m": 11.13,
+          "synthetic": false
+        },
+        {
+          "date": "2016-05-15",
+          "depth_m": 12.41,
+          "synthetic": false
+        },
+        {
+          "date": "2016-08-25",
+          "depth_m": 6.45,
+          "synthetic": false
+        },
+        {
+          "date": "2016-11-05",
+          "depth_m": 9.6,
+          "synthetic": false
+        },
+        {
+          "date": "2017-01-05",
+          "depth_m": 12.15,
+          "synthetic": false
+        },
+        {
+          "date": "2017-05-15",
+          "depth_m": 11.0,
+          "synthetic": false
+        },
+        {
+          "date": "2017-08-25",
+          "depth_m": 5.08,
+          "synthetic": false
+        },
+        {
+          "date": "2017-11-05",
+          "depth_m": 7.12,
+          "synthetic": false
+        },
+        {
+          "date": "2018-01-05",
+          "depth_m": 11.5,
+          "synthetic": false
+        },
+        {
+          "date": "2018-05-25",
+          "depth_m": 10.6,
+          "synthetic": false
+        },
+        {
+          "date": "2018-08-25",
+          "depth_m": 7.25,
+          "synthetic": false
+        },
+        {
+          "date": "2018-11-05",
+          "depth_m": 8.85,
+          "synthetic": false
+        },
+        {
+          "date": "2019-01-04",
+          "depth_m": 11.05,
+          "synthetic": false
+        },
+        {
+          "date": "2019-05-28",
+          "depth_m": 14.2,
+          "synthetic": false
+        },
+        {
+          "date": "2019-08-11",
+          "depth_m": 6.6,
+          "synthetic": false
+        },
+        {
+          "date": "2019-11-27",
+          "depth_m": 8.86,
+          "synthetic": false
+        },
+        {
+          "date": "2020-01-10",
+          "depth_m": 12.25,
+          "synthetic": false
+        },
+        {
+          "date": "2020-11-30",
+          "depth_m": 10.73,
+          "synthetic": false
+        }
+      ],
+      "rainfall_series": [
+        {
+          "date": "2026-01-01",
+          "rainfall_mm": 0.0,
+          "synthetic": true
+        },
+        {
+          "date": "2026-01-15",
+          "rainfall_mm": 0.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-02-01",
+          "rainfall_mm": 1.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-02-15",
+          "rainfall_mm": 0.8,
+          "synthetic": true
+        },
+        {
+          "date": "2026-03-01",
+          "rainfall_mm": 3.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-03-15",
+          "rainfall_mm": 5.1,
+          "synthetic": true
+        },
+        {
+          "date": "2026-04-01",
+          "rainfall_mm": 18.6,
+          "synthetic": true
+        },
+        {
+          "date": "2026-04-15",
+          "rainfall_mm": 24.3,
+          "synthetic": true
+        },
+        {
+          "date": "2026-05-01",
+          "rainfall_mm": 42.1,
+          "synthetic": true
+        },
+        {
+          "date": "2026-05-15",
+          "rainfall_mm": 87.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-06-01",
+          "rainfall_mm": 312.5,
+          "synthetic": true
+        },
+        {
+          "date": "2026-06-15",
+          "rainfall_mm": 287.3,
+          "synthetic": true
+        },
+        {
+          "date": "2026-07-01",
+          "rainfall_mm": 341.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-07-15",
+          "rainfall_mm": 298.6,
+          "synthetic": true
+        },
+        {
+          "date": "2026-08-01",
+          "rainfall_mm": 256.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-08-15",
+          "rainfall_mm": 189.3,
+          "synthetic": true
+        },
+        {
+          "date": "2026-09-01",
+          "rainfall_mm": 142.7,
+          "synthetic": true
+        },
+        {
+          "date": "2026-09-15",
+          "rainfall_mm": 98.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-10-01",
+          "rainfall_mm": 45.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-10-10",
+          "rainfall_mm": 12.8,
+          "synthetic": true
+        }
+      ]
+    },
+    {
+      "ward_id": "dk-kankanady",
+      "name": "Kankanady",
+      "display_name": "Kankanady Ward",
+      "latitude": 12.91,
+      "longitude": 74.86,
+      "population_approx": 22000,
+      "area_sqkm": 4.1,
+      "well_ids": [
+        "Kankanadi",
+        "Padil",
+        "Kenjaru",
+        "DK-WELL-002"
+      ],
+      "groundwater_depth_m": 10.73,
+      "depth_observed_at": "2020-11-30",
+      "depth_trend_m_per_month": 4.83,
+      "observations_count": 81,
+      "synthetic": false,
+      "groundwater_synthetic": false,
+      "matched_station": "Padil",
+      "freshness_disclosure": "Historical quarterly government groundwater observations; not live groundwater sensor data.",
+      "data_age_days": 2141,
+      "rainfall_rainfall_7d_mm": 12.8,
+      "rainfall_rainfall_30d_mm": 156.4,
+      "rainfall_seasonal_baseline_7d_mm": 45.0,
+      "rainfall_synthetic": true,
+      "data_mode": "hybrid",
+      "last_updated": "2026-10-11T05:54:41.384596Z",
+      "groundwater_series": [
+        {
+          "date": "2005-01-05",
+          "depth_m": 9.44,
+          "synthetic": false
+        },
+        {
+          "date": "2005-05-15",
+          "depth_m": 9.75,
+          "synthetic": false
+        },
+        {
+          "date": "2005-08-25",
+          "depth_m": 8.18,
+          "synthetic": false
+        },
+        {
+          "date": "2005-11-05",
+          "depth_m": 9.2,
+          "synthetic": false
+        },
+        {
+          "date": "2006-05-15",
+          "depth_m": 7.85,
+          "synthetic": false
+        },
+        {
+          "date": "2006-08-25",
+          "depth_m": 8.45,
+          "synthetic": false
+        },
+        {
+          "date": "2006-11-05",
+          "depth_m": 7.66,
+          "synthetic": false
+        },
+        {
+          "date": "2007-01-05",
+          "depth_m": 9.66,
+          "synthetic": false
+        },
+        {
+          "date": "2007-05-15",
+          "depth_m": 9.62,
+          "synthetic": false
+        },
+        {
+          "date": "2007-08-25",
+          "depth_m": 4.6,
+          "synthetic": false
+        },
+        {
+          "date": "2007-11-05",
+          "depth_m": 5.84,
+          "synthetic": false
+        },
+        {
+          "date": "2008-01-05",
+          "depth_m": 8.45,
+          "synthetic": false
+        },
+        {
+          "date": "2008-05-15",
+          "depth_m": 9.6,
+          "synthetic": false
+        },
+        {
+          "date": "2008-08-25",
+          "depth_m": 8.87,
+          "synthetic": false
+        },
+        {
+          "date": "2008-11-05",
+          "depth_m": 8.95,
+          "synthetic": false
+        },
+        {
+          "date": "2009-01-05",
+          "depth_m": 8.83,
+          "synthetic": false
+        },
+        {
+          "date": "2009-05-15",
+          "depth_m": 9.49,
+          "synthetic": false
+        },
+        {
+          "date": "2009-08-25",
+          "depth_m": 6.65,
+          "synthetic": false
+        },
+        {
+          "date": "2009-11-05",
+          "depth_m": 8.15,
+          "synthetic": false
+        },
+        {
+          "date": "2010-01-05",
+          "depth_m": 4.0,
+          "synthetic": false
+        },
+        {
+          "date": "2010-05-15",
+          "depth_m": 8.68,
+          "synthetic": false
+        },
+        {
+          "date": "2010-08-25",
+          "depth_m": 6.85,
+          "synthetic": false
+        },
+        {
+          "date": "2010-11-05",
+          "depth_m": 7.2,
+          "synthetic": false
+        },
+        {
+          "date": "2011-01-05",
+          "depth_m": 8.33,
+          "synthetic": false
+        },
+        {
+          "date": "2012-11-05",
+          "depth_m": 8.65,
+          "synthetic": false
+        },
+        {
+          "date": "2013-01-05",
+          "depth_m": 10.0,
+          "synthetic": false
+        },
+        {
+          "date": "2013-08-25",
+          "depth_m": 6.2,
+          "synthetic": false
+        },
+        {
+          "date": "2013-11-05",
+          "depth_m": 10.05,
+          "synthetic": false
+        },
+        {
+          "date": "2014-01-05",
+          "depth_m": 6.3,
+          "synthetic": false
+        },
+        {
+          "date": "2014-05-15",
+          "depth_m": 8.75,
+          "synthetic": false
+        },
+        {
+          "date": "2014-08-25",
+          "depth_m": 7.12,
+          "synthetic": false
+        },
+        {
+          "date": "2014-11-05",
+          "depth_m": 6.05,
+          "synthetic": false
+        },
+        {
+          "date": "2015-01-05",
+          "depth_m": 8.55,
+          "synthetic": false
+        },
+        {
+          "date": "2015-05-15",
+          "depth_m": 6.24,
+          "synthetic": false
+        },
+        {
+          "date": "2015-08-25",
+          "depth_m": 5.32,
+          "synthetic": false
+        },
+        {
+          "date": "2015-11-05",
+          "depth_m": 7.45,
+          "synthetic": false
+        },
+        {
+          "date": "2016-01-05",
+          "depth_m": 8.77,
+          "synthetic": false
+        },
+        {
+          "date": "2016-05-15",
+          "depth_m": 9.75,
+          "synthetic": false
+        },
+        {
+          "date": "2016-08-25",
+          "depth_m": 5.47,
+          "synthetic": false
+        },
+        {
+          "date": "2016-11-05",
+          "depth_m": 7.76,
+          "synthetic": false
+        },
+        {
+          "date": "2017-01-05",
+          "depth_m": 9.2,
+          "synthetic": false
+        },
+        {
+          "date": "2017-05-15",
+          "depth_m": 8.75,
+          "synthetic": false
+        },
+        {
+          "date": "2017-08-25",
+          "depth_m": 5.27,
+          "synthetic": false
+        },
+        {
+          "date": "2017-11-05",
+          "depth_m": 9.35,
+          "synthetic": false
+        },
+        {
+          "date": "2018-01-05",
+          "depth_m": 8.85,
+          "synthetic": false
+        },
+        {
+          "date": "2018-05-25",
+          "depth_m": 8.38,
+          "synthetic": false
+        },
+        {
+          "date": "2018-08-25",
+          "depth_m": 5.67,
+          "synthetic": false
+        },
+        {
+          "date": "2018-11-05",
+          "depth_m": 7.42,
+          "synthetic": false
+        },
+        {
+          "date": "2019-01-04",
+          "depth_m": 8.48,
+          "synthetic": false
+        },
+        {
+          "date": "2019-05-28",
+          "depth_m": 10.9,
+          "synthetic": false
+        },
+        {
+          "date": "2019-08-11",
+          "depth_m": 4.7,
+          "synthetic": false
+        },
+        {
+          "date": "2019-11-27",
+          "depth_m": 6.55,
+          "synthetic": false
+        },
+        {
+          "date": "2020-01-10",
+          "depth_m": 9.43,
+          "synthetic": false
+        },
+        {
+          "date": "2020-11-30",
+          "depth_m": 8.32,
+          "synthetic": false
+        }
+      ],
+      "rainfall_series": [
+        {
+          "date": "2026-01-01",
+          "rainfall_mm": 0.0,
+          "synthetic": true
+        },
+        {
+          "date": "2026-01-15",
+          "rainfall_mm": 0.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-02-01",
+          "rainfall_mm": 1.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-02-15",
+          "rainfall_mm": 0.8,
+          "synthetic": true
+        },
+        {
+          "date": "2026-03-01",
+          "rainfall_mm": 3.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-03-15",
+          "rainfall_mm": 5.1,
+          "synthetic": true
+        },
+        {
+          "date": "2026-04-01",
+          "rainfall_mm": 18.6,
+          "synthetic": true
+        },
+        {
+          "date": "2026-04-15",
+          "rainfall_mm": 24.3,
+          "synthetic": true
+        },
+        {
+          "date": "2026-05-01",
+          "rainfall_mm": 42.1,
+          "synthetic": true
+        },
+        {
+          "date": "2026-05-15",
+          "rainfall_mm": 87.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-06-01",
+          "rainfall_mm": 312.5,
+          "synthetic": true
+        },
+        {
+          "date": "2026-06-15",
+          "rainfall_mm": 287.3,
+          "synthetic": true
+        },
+        {
+          "date": "2026-07-01",
+          "rainfall_mm": 341.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-07-15",
+          "rainfall_mm": 298.6,
+          "synthetic": true
+        },
+        {
+          "date": "2026-08-01",
+          "rainfall_mm": 256.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-08-15",
+          "rainfall_mm": 189.3,
+          "synthetic": true
+        },
+        {
+          "date": "2026-09-01",
+          "rainfall_mm": 142.7,
+          "synthetic": true
+        },
+        {
+          "date": "2026-09-15",
+          "rainfall_mm": 98.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-10-01",
+          "rainfall_mm": 45.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-10-10",
+          "rainfall_mm": 12.8,
+          "synthetic": true
+        }
+      ]
+    },
+    {
+      "ward_id": "dk-kadri",
+      "name": "Kadri",
+      "display_name": "Kadri Ward",
+      "latitude": 12.88,
+      "longitude": 74.85,
+      "population_approx": 15000,
+      "area_sqkm": 2.8,
+      "well_ids": [
+        "Mangalore Lalbhag",
+        "Mangalore Attawara",
+        "Mangalore Bandaru",
+        "DK-WELL-003"
+      ],
+      "groundwater_depth_m": 3.44,
+      "depth_observed_at": "2020-11-30",
+      "depth_trend_m_per_month": 2.94,
+      "observations_count": 77,
+      "synthetic": false,
+      "groundwater_synthetic": false,
+      "matched_station": "Mangalore Lalbhag",
+      "freshness_disclosure": "Historical quarterly government groundwater observations; not live groundwater sensor data.",
+      "data_age_days": 2141,
+      "rainfall_rainfall_7d_mm": 12.8,
+      "rainfall_rainfall_30d_mm": 156.4,
+      "rainfall_seasonal_baseline_7d_mm": 45.0,
+      "rainfall_synthetic": true,
+      "data_mode": "hybrid",
+      "last_updated": "2026-10-11T05:54:41.401773Z",
+      "groundwater_series": [
+        {
+          "date": "2013-01-05",
+          "depth_m": 4.08,
+          "synthetic": false
+        },
+        {
+          "date": "2013-05-15",
+          "depth_m": 3.83,
+          "synthetic": false
+        },
+        {
+          "date": "2013-08-25",
+          "depth_m": 2.52,
+          "synthetic": false
+        },
+        {
+          "date": "2013-11-05",
+          "depth_m": 3.8,
+          "synthetic": false
+        },
+        {
+          "date": "2014-01-05",
+          "depth_m": 4.3,
+          "synthetic": false
+        },
+        {
+          "date": "2014-05-15",
+          "depth_m": 3.55,
+          "synthetic": false
+        },
+        {
+          "date": "2014-08-25",
+          "depth_m": 2.89,
+          "synthetic": false
+        },
+        {
+          "date": "2014-11-05",
+          "depth_m": 4.3,
+          "synthetic": false
+        },
+        {
+          "date": "2015-01-05",
+          "depth_m": 4.4,
+          "synthetic": false
+        },
+        {
+          "date": "2015-05-15",
+          "depth_m": 4.14,
+          "synthetic": false
+        },
+        {
+          "date": "2015-08-25",
+          "depth_m": 4.62,
+          "synthetic": false
+        },
+        {
+          "date": "2015-11-05",
+          "depth_m": 5.41,
+          "synthetic": false
+        },
+        {
+          "date": "2016-01-05",
+          "depth_m": 6.31,
+          "synthetic": false
+        },
+        {
+          "date": "2016-05-15",
+          "depth_m": 7.15,
+          "synthetic": false
+        },
+        {
+          "date": "2016-08-25",
+          "depth_m": 3.62,
+          "synthetic": false
+        },
+        {
+          "date": "2016-11-05",
+          "depth_m": 6.13,
+          "synthetic": false
+        },
+        {
+          "date": "2017-01-05",
+          "depth_m": 9.2,
+          "synthetic": false
+        },
+        {
+          "date": "2017-05-15",
+          "depth_m": 3.52,
+          "synthetic": false
+        },
+        {
+          "date": "2017-08-25",
+          "depth_m": 2.72,
+          "synthetic": false
+        },
+        {
+          "date": "2017-11-05",
+          "depth_m": 4.94,
+          "synthetic": false
+        },
+        {
+          "date": "2018-01-05",
+          "depth_m": 3.89,
+          "synthetic": false
+        },
+        {
+          "date": "2018-05-25",
+          "depth_m": 5.1,
+          "synthetic": false
+        },
+        {
+          "date": "2018-08-25",
+          "depth_m": 3.86,
+          "synthetic": false
+        },
+        {
+          "date": "2018-11-05",
+          "depth_m": 4.98,
+          "synthetic": false
+        },
+        {
+          "date": "2019-01-04",
+          "depth_m": 6.57,
+          "synthetic": false
+        },
+        {
+          "date": "2019-05-28",
+          "depth_m": 7.4,
+          "synthetic": false
+        },
+        {
+          "date": "2019-08-11",
+          "depth_m": 2.34,
+          "synthetic": false
+        },
+        {
+          "date": "2019-11-27",
+          "depth_m": 6.36,
+          "synthetic": false
+        },
+        {
+          "date": "2020-01-10",
+          "depth_m": 7.01,
+          "synthetic": false
+        },
+        {
+          "date": "2020-11-30",
+          "depth_m": 3.21,
+          "synthetic": false
+        }
+      ],
+      "rainfall_series": [
+        {
+          "date": "2026-01-01",
+          "rainfall_mm": 0.0,
+          "synthetic": true
+        },
+        {
+          "date": "2026-01-15",
+          "rainfall_mm": 0.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-02-01",
+          "rainfall_mm": 1.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-02-15",
+          "rainfall_mm": 0.8,
+          "synthetic": true
+        },
+        {
+          "date": "2026-03-01",
+          "rainfall_mm": 3.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-03-15",
+          "rainfall_mm": 5.1,
+          "synthetic": true
+        },
+        {
+          "date": "2026-04-01",
+          "rainfall_mm": 18.6,
+          "synthetic": true
+        },
+        {
+          "date": "2026-04-15",
+          "rainfall_mm": 24.3,
+          "synthetic": true
+        },
+        {
+          "date": "2026-05-01",
+          "rainfall_mm": 42.1,
+          "synthetic": true
+        },
+        {
+          "date": "2026-05-15",
+          "rainfall_mm": 87.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-06-01",
+          "rainfall_mm": 312.5,
+          "synthetic": true
+        },
+        {
+          "date": "2026-06-15",
+          "rainfall_mm": 287.3,
+          "synthetic": true
+        },
+        {
+          "date": "2026-07-01",
+          "rainfall_mm": 341.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-07-15",
+          "rainfall_mm": 298.6,
+          "synthetic": true
+        },
+        {
+          "date": "2026-08-01",
+          "rainfall_mm": 256.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-08-15",
+          "rainfall_mm": 189.3,
+          "synthetic": true
+        },
+        {
+          "date": "2026-09-01",
+          "rainfall_mm": 142.7,
+          "synthetic": true
+        },
+        {
+          "date": "2026-09-15",
+          "rainfall_mm": 98.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-10-01",
+          "rainfall_mm": 45.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-10-10",
+          "rainfall_mm": 12.8,
+          "synthetic": true
+        }
+      ]
+    },
+    {
+      "ward_id": "dk-surathkal",
+      "name": "Surathkal",
+      "display_name": "Surathkal Ward",
+      "latitude": 13.0,
+      "longitude": 74.79,
+      "population_approx": 19000,
+      "area_sqkm": 5.6,
+      "well_ids": [
+        "Surathkal",
+        "Mukka",
+        "Bala",
+        "DK-WELL-004"
+      ],
+      "groundwater_depth_m": 8.75,
+      "depth_observed_at": "2020-11-30",
+      "depth_trend_m_per_month": 0.3,
+      "observations_count": 148,
+      "synthetic": false,
+      "groundwater_synthetic": false,
+      "matched_station": "Surathkal",
+      "freshness_disclosure": "Historical quarterly government groundwater observations; not live groundwater sensor data.",
+      "data_age_days": 2141,
+      "rainfall_rainfall_7d_mm": 12.8,
+      "rainfall_rainfall_30d_mm": 156.4,
+      "rainfall_seasonal_baseline_7d_mm": 45.0,
+      "rainfall_synthetic": true,
+      "data_mode": "hybrid",
+      "last_updated": "2026-10-11T05:54:41.401773Z",
+      "groundwater_series": [
+        {
+          "date": "1996-01-05",
+          "depth_m": 10.1,
+          "synthetic": false
+        },
+        {
+          "date": "1996-05-15",
+          "depth_m": 12.12,
+          "synthetic": false
+        },
+        {
+          "date": "1996-08-25",
+          "depth_m": 7.92,
+          "synthetic": false
+        },
+        {
+          "date": "1996-11-05",
+          "depth_m": 9.83,
+          "synthetic": false
+        },
+        {
+          "date": "1997-01-05",
+          "depth_m": 10.21,
+          "synthetic": false
+        },
+        {
+          "date": "1997-05-15",
+          "depth_m": 10.98,
+          "synthetic": false
+        },
+        {
+          "date": "1997-08-25",
+          "depth_m": 6.92,
+          "synthetic": false
+        },
+        {
+          "date": "1997-11-05",
+          "depth_m": 8.38,
+          "synthetic": false
+        },
+        {
+          "date": "1998-01-05",
+          "depth_m": 8.52,
+          "synthetic": false
+        },
+        {
+          "date": "1998-05-15",
+          "depth_m": 10.95,
+          "synthetic": false
+        },
+        {
+          "date": "1998-08-25",
+          "depth_m": 7.05,
+          "synthetic": false
+        },
+        {
+          "date": "1998-11-05",
+          "depth_m": 8.45,
+          "synthetic": false
+        },
+        {
+          "date": "1999-01-05",
+          "depth_m": 9.25,
+          "synthetic": false
+        },
+        {
+          "date": "1999-05-15",
+          "depth_m": 9.44,
+          "synthetic": false
+        },
+        {
+          "date": "1999-08-25",
+          "depth_m": 7.95,
+          "synthetic": false
+        },
+        {
+          "date": "1999-11-05",
+          "depth_m": 9.0,
+          "synthetic": false
+        },
+        {
+          "date": "2000-01-05",
+          "depth_m": 9.21,
+          "synthetic": false
+        },
+        {
+          "date": "2000-05-15",
+          "depth_m": 9.41,
+          "synthetic": false
+        },
+        {
+          "date": "2000-08-25",
+          "depth_m": 7.88,
+          "synthetic": false
+        },
+        {
+          "date": "2000-11-05",
+          "depth_m": 9.25,
+          "synthetic": false
+        },
+        {
+          "date": "2001-01-05",
+          "depth_m": 9.82,
+          "synthetic": false
+        },
+        {
+          "date": "2001-05-15",
+          "depth_m": 9.06,
+          "synthetic": false
+        },
+        {
+          "date": "2001-08-25",
+          "depth_m": 5.5,
+          "synthetic": false
+        },
+        {
+          "date": "2001-11-05",
+          "depth_m": 8.95,
+          "synthetic": false
+        },
+        {
+          "date": "2002-01-05",
+          "depth_m": 9.04,
+          "synthetic": false
+        },
+        {
+          "date": "2002-05-15",
+          "depth_m": 8.98,
+          "synthetic": false
+        },
+        {
+          "date": "2002-08-25",
+          "depth_m": 7.3,
+          "synthetic": false
+        },
+        {
+          "date": "2002-11-05",
+          "depth_m": 8.8,
+          "synthetic": false
+        },
+        {
+          "date": "2003-01-05",
+          "depth_m": 9.08,
+          "synthetic": false
+        },
+        {
+          "date": "2003-05-15",
+          "depth_m": 9.56,
+          "synthetic": false
+        },
+        {
+          "date": "2003-08-25",
+          "depth_m": 8.15,
+          "synthetic": false
+        },
+        {
+          "date": "2003-11-05",
+          "depth_m": 9.06,
+          "synthetic": false
+        },
+        {
+          "date": "2004-01-05",
+          "depth_m": 9.24,
+          "synthetic": false
+        },
+        {
+          "date": "2004-05-15",
+          "depth_m": 8.9,
+          "synthetic": false
+        },
+        {
+          "date": "2004-08-25",
+          "depth_m": 7.7,
+          "synthetic": false
+        },
+        {
+          "date": "2004-11-05",
+          "depth_m": 9.17,
+          "synthetic": false
+        },
+        {
+          "date": "2005-01-05",
+          "depth_m": 9.23,
+          "synthetic": false
+        },
+        {
+          "date": "2005-05-15",
+          "depth_m": 9.5,
+          "synthetic": false
+        },
+        {
+          "date": "2005-08-25",
+          "depth_m": 7.86,
+          "synthetic": false
+        },
+        {
+          "date": "2005-11-05",
+          "depth_m": 8.96,
+          "synthetic": false
+        },
+        {
+          "date": "2006-01-05",
+          "depth_m": 9.0,
+          "synthetic": false
+        },
+        {
+          "date": "2006-05-15",
+          "depth_m": 5.64,
+          "synthetic": false
+        },
+        {
+          "date": "2006-08-25",
+          "depth_m": 8.1,
+          "synthetic": false
+        },
+        {
+          "date": "2006-11-05",
+          "depth_m": 9.4,
+          "synthetic": false
+        },
+        {
+          "date": "2007-01-05",
+          "depth_m": 8.93,
+          "synthetic": false
+        },
+        {
+          "date": "2007-05-15",
+          "depth_m": 9.15,
+          "synthetic": false
+        },
+        {
+          "date": "2007-08-25",
+          "depth_m": 5.37,
+          "synthetic": false
+        },
+        {
+          "date": "2007-11-05",
+          "depth_m": 7.18,
+          "synthetic": false
+        },
+        {
+          "date": "2008-01-05",
+          "depth_m": 9.05,
+          "synthetic": false
+        },
+        {
+          "date": "2008-05-15",
+          "depth_m": 9.12,
+          "synthetic": false
+        },
+        {
+          "date": "2008-08-25",
+          "depth_m": 8.25,
+          "synthetic": false
+        },
+        {
+          "date": "2008-11-05",
+          "depth_m": 9.0,
+          "synthetic": false
+        },
+        {
+          "date": "2009-01-05",
+          "depth_m": 9.06,
+          "synthetic": false
+        },
+        {
+          "date": "2009-05-15",
+          "depth_m": 8.83,
+          "synthetic": false
+        },
+        {
+          "date": "2009-08-25",
+          "depth_m": 7.05,
+          "synthetic": false
+        },
+        {
+          "date": "2010-05-15",
+          "depth_m": 9.06,
+          "synthetic": false
+        },
+        {
+          "date": "2010-08-25",
+          "depth_m": 6.85,
+          "synthetic": false
+        },
+        {
+          "date": "2011-01-05",
+          "depth_m": 8.98,
+          "synthetic": false
+        },
+        {
+          "date": "2011-05-15",
+          "depth_m": 9.04,
+          "synthetic": false
+        },
+        {
+          "date": "2011-08-25",
+          "depth_m": 6.1,
+          "synthetic": false
+        },
+        {
+          "date": "2011-11-05",
+          "depth_m": 8.24,
+          "synthetic": false
+        },
+        {
+          "date": "2012-01-05",
+          "depth_m": 9.22,
+          "synthetic": false
+        },
+        {
+          "date": "2012-05-15",
+          "depth_m": 8.8,
+          "synthetic": false
+        },
+        {
+          "date": "2012-11-05",
+          "depth_m": 8.28,
+          "synthetic": false
+        },
+        {
+          "date": "2013-01-05",
+          "depth_m": 7.0,
+          "synthetic": false
+        },
+        {
+          "date": "2013-05-15",
+          "depth_m": 8.73,
+          "synthetic": false
+        },
+        {
+          "date": "2013-08-25",
+          "depth_m": 5.79,
+          "synthetic": false
+        },
+        {
+          "date": "2013-11-05",
+          "depth_m": 6.67,
+          "synthetic": false
+        },
+        {
+          "date": "2014-01-05",
+          "depth_m": 7.28,
+          "synthetic": false
+        },
+        {
+          "date": "2014-05-15",
+          "depth_m": 7.83,
+          "synthetic": false
+        },
+        {
+          "date": "2014-08-25",
+          "depth_m": 5.64,
+          "synthetic": false
+        },
+        {
+          "date": "2014-11-05",
+          "depth_m": 4.1,
+          "synthetic": false
+        },
+        {
+          "date": "2015-01-05",
+          "depth_m": 7.33,
+          "synthetic": false
+        },
+        {
+          "date": "2015-05-15",
+          "depth_m": 7.14,
+          "synthetic": false
+        },
+        {
+          "date": "2015-08-25",
+          "depth_m": 6.15,
+          "synthetic": false
+        },
+        {
+          "date": "2015-11-05",
+          "depth_m": 5.83,
+          "synthetic": false
+        },
+        {
+          "date": "2016-01-05",
+          "depth_m": 6.09,
+          "synthetic": false
+        },
+        {
+          "date": "2016-05-15",
+          "depth_m": 7.77,
+          "synthetic": false
+        },
+        {
+          "date": "2016-08-25",
+          "depth_m": 5.44,
+          "synthetic": false
+        },
+        {
+          "date": "2016-11-05",
+          "depth_m": 6.56,
+          "synthetic": false
+        },
+        {
+          "date": "2017-01-05",
+          "depth_m": 5.57,
+          "synthetic": false
+        },
+        {
+          "date": "2017-05-15",
+          "depth_m": 4.72,
+          "synthetic": false
+        },
+        {
+          "date": "2017-08-25",
+          "depth_m": 3.89,
+          "synthetic": false
+        },
+        {
+          "date": "2017-11-05",
+          "depth_m": 7.35,
+          "synthetic": false
+        },
+        {
+          "date": "2018-01-05",
+          "depth_m": 6.79,
+          "synthetic": false
+        },
+        {
+          "date": "2018-05-25",
+          "depth_m": 5.69,
+          "synthetic": false
+        },
+        {
+          "date": "2018-08-25",
+          "depth_m": 5.62,
+          "synthetic": false
+        },
+        {
+          "date": "2018-11-05",
+          "depth_m": 6.78,
+          "synthetic": false
+        },
+        {
+          "date": "2019-01-03",
+          "depth_m": 8.79,
+          "synthetic": false
+        },
+        {
+          "date": "2019-01-04",
+          "depth_m": 6.12,
+          "synthetic": false
+        },
+        {
+          "date": "2019-05-28",
+          "depth_m": 8.77,
+          "synthetic": false
+        },
+        {
+          "date": "2019-08-11",
+          "depth_m": 3.08,
+          "synthetic": false
+        },
+        {
+          "date": "2019-11-27",
+          "depth_m": 4.05,
+          "synthetic": false
+        },
+        {
+          "date": "2020-01-10",
+          "depth_m": 5.35,
+          "synthetic": false
+        },
+        {
+          "date": "2020-11-30",
+          "depth_m": 8.52,
+          "synthetic": false
+        }
+      ],
+      "rainfall_series": [
+        {
+          "date": "2026-01-01",
+          "rainfall_mm": 0.0,
+          "synthetic": true
+        },
+        {
+          "date": "2026-01-15",
+          "rainfall_mm": 0.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-02-01",
+          "rainfall_mm": 1.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-02-15",
+          "rainfall_mm": 0.8,
+          "synthetic": true
+        },
+        {
+          "date": "2026-03-01",
+          "rainfall_mm": 3.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-03-15",
+          "rainfall_mm": 5.1,
+          "synthetic": true
+        },
+        {
+          "date": "2026-04-01",
+          "rainfall_mm": 18.6,
+          "synthetic": true
+        },
+        {
+          "date": "2026-04-15",
+          "rainfall_mm": 24.3,
+          "synthetic": true
+        },
+        {
+          "date": "2026-05-01",
+          "rainfall_mm": 42.1,
+          "synthetic": true
+        },
+        {
+          "date": "2026-05-15",
+          "rainfall_mm": 87.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-06-01",
+          "rainfall_mm": 312.5,
+          "synthetic": true
+        },
+        {
+          "date": "2026-06-15",
+          "rainfall_mm": 287.3,
+          "synthetic": true
+        },
+        {
+          "date": "2026-07-01",
+          "rainfall_mm": 341.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-07-15",
+          "rainfall_mm": 298.6,
+          "synthetic": true
+        },
+        {
+          "date": "2026-08-01",
+          "rainfall_mm": 256.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-08-15",
+          "rainfall_mm": 189.3,
+          "synthetic": true
+        },
+        {
+          "date": "2026-09-01",
+          "rainfall_mm": 142.7,
+          "synthetic": true
+        },
+        {
+          "date": "2026-09-15",
+          "rainfall_mm": 98.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-10-01",
+          "rainfall_mm": 45.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-10-10",
+          "rainfall_mm": 12.8,
+          "synthetic": true
+        }
+      ]
+    },
+    {
+      "ward_id": "dk-moodbidri",
+      "name": "Moodbidri",
+      "display_name": "Moodbidri Ward",
+      "latitude": 12.96,
+      "longitude": 74.99,
+      "population_approx": 12000,
+      "area_sqkm": 7.2,
+      "well_ids": [
+        "Garadi",
+        "Kinni Kambala",
+        "Perar",
+        "DK-WELL-005"
+      ],
+      "groundwater_depth_m": 10.97,
+      "depth_observed_at": "2020-11-30",
+      "depth_trend_m_per_month": 2.2,
+      "observations_count": 82,
+      "synthetic": false,
+      "groundwater_synthetic": false,
+      "matched_station": "Perar",
+      "freshness_disclosure": "Historical quarterly government groundwater observations; not live groundwater sensor data.",
+      "data_age_days": 2141,
+      "rainfall_rainfall_7d_mm": 12.8,
+      "rainfall_rainfall_30d_mm": 156.4,
+      "rainfall_seasonal_baseline_7d_mm": 45.0,
+      "rainfall_synthetic": true,
+      "data_mode": "hybrid",
+      "last_updated": "2026-10-11T05:54:41.418041Z",
+      "groundwater_series": [
+        {
+          "date": "2013-01-05",
+          "depth_m": 10.85,
+          "synthetic": false
+        },
+        {
+          "date": "2013-05-15",
+          "depth_m": 13.7,
+          "synthetic": false
+        },
+        {
+          "date": "2013-08-25",
+          "depth_m": 7.6,
+          "synthetic": false
+        },
+        {
+          "date": "2013-11-05",
+          "depth_m": 8.84,
+          "synthetic": false
+        },
+        {
+          "date": "2014-01-05",
+          "depth_m": 10.93,
+          "synthetic": false
+        },
+        {
+          "date": "2014-05-15",
+          "depth_m": 13.42,
+          "synthetic": false
+        },
+        {
+          "date": "2014-08-25",
+          "depth_m": 7.34,
+          "synthetic": false
+        },
+        {
+          "date": "2014-11-05",
+          "depth_m": 8.93,
+          "synthetic": false
+        },
+        {
+          "date": "2015-01-05",
+          "depth_m": 10.68,
+          "synthetic": false
+        },
+        {
+          "date": "2015-05-15",
+          "depth_m": 12.62,
+          "synthetic": false
+        },
+        {
+          "date": "2015-08-25",
+          "depth_m": 7.99,
+          "synthetic": false
+        },
+        {
+          "date": "2015-11-05",
+          "depth_m": 8.68,
+          "synthetic": false
+        },
+        {
+          "date": "2016-01-05",
+          "depth_m": 9.53,
+          "synthetic": false
+        },
+        {
+          "date": "2016-05-15",
+          "depth_m": 10.82,
+          "synthetic": false
+        },
+        {
+          "date": "2016-08-25",
+          "depth_m": 8.51,
+          "synthetic": false
+        },
+        {
+          "date": "2016-11-05",
+          "depth_m": 10.06,
+          "synthetic": false
+        },
+        {
+          "date": "2017-01-05",
+          "depth_m": 11.42,
+          "synthetic": false
+        },
+        {
+          "date": "2017-05-15",
+          "depth_m": 12.12,
+          "synthetic": false
+        },
+        {
+          "date": "2017-08-25",
+          "depth_m": 7.65,
+          "synthetic": false
+        },
+        {
+          "date": "2017-11-05",
+          "depth_m": 10.67,
+          "synthetic": false
+        },
+        {
+          "date": "2018-01-05",
+          "depth_m": 10.22,
+          "synthetic": false
+        },
+        {
+          "date": "2018-05-25",
+          "depth_m": 12.8,
+          "synthetic": false
+        },
+        {
+          "date": "2018-08-25",
+          "depth_m": 7.82,
+          "synthetic": false
+        },
+        {
+          "date": "2018-11-05",
+          "depth_m": 9.65,
+          "synthetic": false
+        },
+        {
+          "date": "2019-01-04",
+          "depth_m": 11.15,
+          "synthetic": false
+        },
+        {
+          "date": "2019-05-28",
+          "depth_m": 12.5,
+          "synthetic": false
+        },
+        {
+          "date": "2019-08-11",
+          "depth_m": 6.69,
+          "synthetic": false
+        },
+        {
+          "date": "2019-11-27",
+          "depth_m": 6.45,
+          "synthetic": false
+        },
+        {
+          "date": "2020-01-10",
+          "depth_m": 11.98,
+          "synthetic": false
+        },
+        {
+          "date": "2020-11-30",
+          "depth_m": 10.15,
+          "synthetic": false
+        }
+      ],
+      "rainfall_series": [
+        {
+          "date": "2026-01-01",
+          "rainfall_mm": 0.0,
+          "synthetic": true
+        },
+        {
+          "date": "2026-01-15",
+          "rainfall_mm": 0.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-02-01",
+          "rainfall_mm": 1.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-02-15",
+          "rainfall_mm": 0.8,
+          "synthetic": true
+        },
+        {
+          "date": "2026-03-01",
+          "rainfall_mm": 3.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-03-15",
+          "rainfall_mm": 5.1,
+          "synthetic": true
+        },
+        {
+          "date": "2026-04-01",
+          "rainfall_mm": 18.6,
+          "synthetic": true
+        },
+        {
+          "date": "2026-04-15",
+          "rainfall_mm": 24.3,
+          "synthetic": true
+        },
+        {
+          "date": "2026-05-01",
+          "rainfall_mm": 42.1,
+          "synthetic": true
+        },
+        {
+          "date": "2026-05-15",
+          "rainfall_mm": 87.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-06-01",
+          "rainfall_mm": 312.5,
+          "synthetic": true
+        },
+        {
+          "date": "2026-06-15",
+          "rainfall_mm": 287.3,
+          "synthetic": true
+        },
+        {
+          "date": "2026-07-01",
+          "rainfall_mm": 341.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-07-15",
+          "rainfall_mm": 298.6,
+          "synthetic": true
+        },
+        {
+          "date": "2026-08-01",
+          "rainfall_mm": 256.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-08-15",
+          "rainfall_mm": 189.3,
+          "synthetic": true
+        },
+        {
+          "date": "2026-09-01",
+          "rainfall_mm": 142.7,
+          "synthetic": true
+        },
+        {
+          "date": "2026-09-15",
+          "rainfall_mm": 98.4,
+          "synthetic": true
+        },
+        {
+          "date": "2026-10-01",
+          "rainfall_mm": 45.2,
+          "synthetic": true
+        },
+        {
+          "date": "2026-10-10",
+          "rainfall_mm": 12.8,
+          "synthetic": true
+        }
+      ]
+    }
+  ],
+  "quality_report": {
+    "generated_at": "2026-10-11T05:54:41.370220Z",
+    "data_mode": "hybrid",
+    "synthetic": false,
+    "groundwater_source_mode": "real_historical",
+    "rainfall_source_mode": "synthetic_baseline",
+    "ward_estimate_mode": "model_assisted",
+    "groundwater": {
+      "rows": 4962,
+      "date_range": [
+        "1996-01-05",
+        "2020-11-30"
+      ],
+      "wells": 115,
+      "warnings": [
+        "Unrecognized column skipped: 'SlNo'",
+        "Unrecognized column skipped: 'Agency'",
+        "Unrecognized column skipped: 'State LGD Code'",
+        "Unrecognized column skipped: 'State'",
+        "Unrecognized column skipped: 'District LGD Code'",
+        "Unrecognized column skipped: 'Tehsil'",
+        "Unrecognized column skipped: 'Block'",
+        "Unrecognized column skipped: 'Village'",
+        "Unrecognized column skipped: 'River'",
+        "Unrecognized column skipped: 'Basin'",
+        "Unrecognized column skipped: 'Tributary'",
+        "Unrecognized column skipped: 'Subtributary'",
+        "Unrecognized column skipped: 'SubSubtributary'",
+        "Unrecognized column skipped: 'Local River'",
+        "Unrecognized column skipped: 'RL_MSL'",
+        "Column 'source' missing \u2014 filled with None",
+        "Filtered to Dakshina Kannada district (4962 records)"
+      ]
+    },
+    "rainfall": {
+      "rows": 20,
+      "date_range": [
+        "2026-01-01",
+        "2026-10-10"
+      ],
+      "warnings": []
+    }
+  }
+}

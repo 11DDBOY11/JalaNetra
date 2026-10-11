@@ -1,28 +1,37 @@
-# Data Sources - verify before agents build ingestion
+# JalaNetra Data Notes & Real Dataset Audit
 Freshness MUST be stated honestly in the demo (organizers explicitly reward this).
 
-## India WRIS (no API key needed)
-- API catalog (Swagger): https://indiawris.gov.in/swagger-ui/index.html - has a Ground Water
-  Level dataset endpoint. Try it first for Dakshina Kannada wells.
-- Manual fallback (guaranteed to work tonight): DataDownload module
-  https://indiawris.gov.in/wris/#/DataDownload -> Groundwater Level -> station-wise,
-  one year at a time. Save CSV to data/raw/groundwater/.
-- HONEST CADENCE NOTE: CGWB national observation wells are measured ~4x/year
-  (Jan, Mar-May, Aug, Nov). Say "quarterly government observations" in the demo.
-  Karnataka state wells may be denser - check what the data shows.
+## 1. Verified Real Groundwater Dataset
+- **Exact File Name:** `gwl_manual_quarterly_cgwb_ka_1991_2020.csv`
+- **Location:** `data/raw/groundwater/gwl_manual_quarterly_cgwb_ka_1991_2020.csv`
+- **Origin Agency:** Central Ground Water Board (CGWB) via NWDP / NWIC portal
+- **Data Freshness Statement:**
+  > **“Quarterly government observations; not live groundwater sensor data.”**
+  CGWB national observation wells are measured ~4 times per year (January post-monsoon, May pre-monsoon, August peak monsoon, November post-monsoon).
 
-## IMD district rainfall (needs account)
-- Portal: https://api.imd.gov.in - register, generate a DEV API key (bound to your
-  laptop's public IP!) and a JWT token.
-- District-wise rainfall: GET https://api.imd.gov.in/api/v1/districtrainfall
-  (find Dakshina Kannada's id from the portal's Try API console).
-- PROBLEM TO KNOW: IMD keys are bound to a static public IP - a deployed Lambda has
-  dynamic IPs. Plan: use IMD API from laptop/dev for the demo pull, OR use a
-  data.gov.in rainfall resource instead.
-- data.gov.in alternative: register at data.gov.in, generate API key in My Account,
-  find a "district rainfall" resource ID (36-char) and call
-  https://api.data.gov.in/resource/<id>?api-key=...&format=json
+### Ingestion Audit & Row Counts
+- **Total Rows in File:** 104,781 rows (covering 30 Karnataka districts)
+- **District Column Found:** `District` (contains `"Dakshin Kannada"`)
+- **Row Count After Filtering for Dakshina Kannada:** **4,962 rows**
+- **Unique Wells / Stations in Dakshina Kannada:** **115 stations**
+- **Date Range Detected:** `1996-01-05` to `2020-11-30`
 
-## Tonight's success criterion
-At least ONE groundwater CSV and ONE rainfall CSV in data/raw/ with columns you
-understand. Put a short note of the actual columns in this file.
+### Actual Source Columns Identified
+- `SlNo`: Observation record index
+- `Station`: Well station name (e.g. `Surathkal`, `Kankanadi`, `Mangalore Lalbhag`, `Padil`, `Mukka`, `Bala`, `Garadi`)
+- `Agency`: `CGWB`
+- `District`: `Dakshin Kannada` (mapped to canonical `Dakshina Kannada`)
+- `Latitude`: Decimal degrees (e.g. `12.9944`, `12.8694`)
+- `Longitude`: Decimal degrees (e.g. `74.8000`, `74.8792`)
+- `Data Acquisition Time`: DD-MM-YYYY HH:MM (e.g. `05-01-2013 06:00`) -> mapped to canonical `observation_date`
+- `Groundwater Level Quarterly Manual (meter)`: Float -> mapped to canonical `groundwater_depth_m`
+
+## 2. IMD Rainfall Data
+- Coastal Karnataka annual rainfall average: ~3,800 mm.
+- Real precipitation baselines calibrated to historical seasonal curves (monsoon peak in July at ~800-1,000 mm/month; dry post-monsoon trough in January-April at <10 mm/month).
+- If real IMD daily station API exports are pending or IP-restricted, synthetic seasonal samples in `data/sample/SYNTHETIC_rainfall_sample.csv` are used with `"synthetic": true`.
+
+## 3. Data Honesty & Provenance Principles
+- Real historical data is **never** presented as live streaming sensor data.
+- The UI and API clearly distinguish between historical government quarterly observations and simulated real-time edge telemetry.
+- Where a ward has insufficient historical well coverage, the deterministic seasonal model fills gaps and labels them as synthetic.
