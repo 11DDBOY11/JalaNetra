@@ -3,19 +3,20 @@ import {
   fetchWards,
   fetchWardDetail,
   fetchForecast,
-  fetchReports,
-  submitReport,
-  subscribeAlert,
-  fetchAlertPreview,
-  fetchHealth,
+  fetchPulseSummary,
+  fetchWardPulse,
+  submitPulseReport,
+  seedPulseOutage,
+  seedPulseRecovery,
+  resetPulseScenario,
+  testPulseSms,
   type WardSummary,
   type WardDetail,
   type Forecast,
-  type CitizenReport,
-  type AlertPreview,
-  type RiskLevel,
-  type ReportStatus,
-  type Language,
+  type PulseStatus,
+  type PulseSummaryResponse,
+  type PulseWardDetailResponse,
+  type PulseSmsTestResponse,
   DEMO_WARDS,
 } from './api';
 import {
@@ -26,1388 +27,1354 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  ReferenceLine,
 } from 'recharts';
+import {
+  DropletIcon,
+  CheckCircleIcon,
+  AlertTriangleIcon,
+  AlertCircleIcon,
+  ClockIcon,
+  UsersIcon,
+  MapPinIcon,
+  ShieldCheckIcon,
+  InfoIcon,
+  RefreshIcon,
+  ArrowRightIcon,
+} from './icons';
 
-// ─────────────────────────────────────────────────────────────
-// Risk Badge & Color Utilities
-// ─────────────────────────────────────────────────────────────
-const RISK_COLORS: Record<RiskLevel, { bg: string; text: string; border: string; label: string }> = {
-  low: { bg: 'rgba(16, 185, 129, 0.15)', text: '#34d399', border: '#10b981', label: 'Low Risk' },
-  moderate: { bg: 'rgba(245, 158, 11, 0.15)', text: '#fbbf24', border: '#f59e0b', label: 'Moderate' },
-  high: { bg: 'rgba(249, 115, 22, 0.15)', text: '#fb923c', border: '#f97316', label: 'High Risk' },
-  critical: { bg: 'rgba(239, 68, 68, 0.2)', text: '#f87171', border: '#ef4444', label: 'Critical' },
-  historical_context: { bg: 'rgba(148, 163, 184, 0.12)', text: '#94a3b8', border: '#64748b', label: 'Historical Record' },
-};
+type TabType = 'pulse' | 'report' | 'admin' | 'historical' | 'about' | 'tools';
 
 export default function App() {
   // Navigation tabs
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'analytics' | 'report' | 'alerts' | 'edge' | 'transparency'>('dashboard');
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab') as TabType;
+    if (['pulse', 'report', 'admin', 'historical', 'about', 'tools'].includes(tabParam)) {
+      return tabParam;
+    }
+    if (window.location.pathname === '/tools') return 'tools';
+    return 'pulse';
+  });
 
-  // Core Data States
+  // Wards State
   const [wards, setWards] = useState<WardSummary[]>(DEMO_WARDS);
   const [selectedWardId, setSelectedWardId] = useState<string>('dk-kodialbail');
-  const [wardDetail, setWardDetail] = useState<WardDetail | null>(null);
-  const [forecast, setForecast] = useState<Forecast | null>(null);
-  const [reports, setReports] = useState<CitizenReport[]>([]);
-  const [alertPreview, setAlertPreview] = useState<AlertPreview | null>(null);
-  const [previewLang, setPreviewLang] = useState<Language>('en-IN');
-  const [dataMode, setDataMode] = useState<string>('real');
-  const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
-  const [_loading, setLoading] = useState<boolean>(true);
-  const [scenarioSelection, setScenarioSelection] = useState<'none' | 'normal' | 'low' | 'dry'>('none');
 
-  // Form states
-  const [reportStatus, setReportStatus] = useState<ReportStatus>('dry');
-  const [reportTankerBooked, setReportTankerBooked] = useState<boolean>(false);
+  // Pulse State
+  const [pulseSummary, setPulseSummary] = useState<PulseSummaryResponse | null>(null);
+  const [wardPulse, setWardPulse] = useState<PulseWardDetailResponse | null>(null);
+  const [selectedReportStatus, setSelectedReportStatus] = useState<PulseStatus>('available');
+  const [reportLocality, setReportLocality] = useState<string>('dk-kodialbail');
   const [reportPhone, setReportPhone] = useState<string>('');
   const [reportNote, setReportNote] = useState<string>('');
-  const [reportSubmitted, setReportSubmitted] = useState<boolean>(false);
-  const [reportSubmitting, setReportSubmitting] = useState<boolean>(false);
+  const [privateSupportArranged, setPrivateSupportArranged] = useState<boolean>(false);
+  const [submittingReport, setSubmittingReport] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Alert Subscription state
-  const [subPhone, setSubPhone] = useState<string>('');
-  const [subLang, setSubLang] = useState<Language>('en-IN');
-  const [subSuccess, setSubSuccess] = useState<string | null>(null);
+  // Response Board Checklist State
+  const [checkedActions, setCheckedActions] = useState<Record<string, boolean>>({});
 
-  // Edge Simulation state
-  const [edgeSimReadings, setEdgeSimReadings] = useState<Array<{
-    timestamp: string;
-    ward_id: string;
-    depth_m: number;
-    voltage: number;
-    rssi: number;
-  }>>([
-    { timestamp: '10:35:12', ward_id: 'dk-kodialbail', depth_m: 13.82, voltage: 3.72, rssi: -62 },
-    { timestamp: '10:35:10', ward_id: 'dk-surathkal', depth_m: 14.21, voltage: 3.68, rssi: -71 },
-    { timestamp: '10:35:08', ward_id: 'dk-kankanady', depth_m: 12.08, voltage: 3.75, rssi: -58 },
-  ]);
+  // Developer / Test Tools State
+  const [smsResult, setSmsResult] = useState<PulseSmsTestResponse | null>(null);
+  const [smsTesting, setSmsTesting] = useState<boolean>(false);
+  const [confirmLiveSend, setConfirmLiveSend] = useState<boolean>(false);
+  const [scenarioLoading, setScenarioLoading] = useState<boolean>(false);
 
-  // Initial load
+  // Historical Context State
+  const [wardDetail, setWardDetail] = useState<WardDetail | null>(null);
+  const [_forecast, setForecast] = useState<Forecast | null>(null);
+
+  // Toast Helper
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 4500);
+  };
+
+  // Sync tab with URL
+  const switchTab = (tab: TabType) => {
+    setActiveTab(tab);
+    const url = new URL(window.location.href);
+    if (tab === 'pulse') {
+      url.searchParams.delete('tab');
+    } else {
+      url.searchParams.set('tab', tab);
+    }
+    window.history.replaceState({}, '', url.toString());
+  };
+
+  // Initial Data Fetch & Polling (8s)
   useEffect(() => {
+    let isMounted = true;
+
     async function loadData() {
       try {
-        setLoading(true);
-        const health = await fetchHealth().catch(() => null);
-        if (health && health.status === 'ok') {
-          setIsBackendConnected(true);
-          if (health.data_mode) setDataMode(health.data_mode);
+        const wardData = await fetchWards().catch(() => null);
+        if (wardData && wardData.wards.length > 0 && isMounted) {
+          setWards(wardData.wards);
         }
 
-        const wardData = await fetchWards().catch(() => null);
-        if (wardData && wardData.wards.length > 0) {
-          setWards(wardData.wards);
-          if (wardData.data_mode) setDataMode(wardData.data_mode);
+        const summaryData = await fetchPulseSummary().catch(() => null);
+        if (summaryData && isMounted) {
+          setPulseSummary(summaryData);
         }
       } catch (err) {
-        console.warn('Backend unavailable, running in local demo mode', err);
-      } finally {
-        setLoading(false);
+        console.warn('Initial load error', err);
       }
     }
+
     loadData();
+
+    const interval = setInterval(async () => {
+      try {
+        const summaryData = await fetchPulseSummary().catch(() => null);
+        if (summaryData && isMounted) {
+          setPulseSummary(summaryData);
+        }
+      } catch {
+        // silent polling catch
+      }
+    }, 8000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
-  // When selected ward changes, load ward detail, forecast, reports, and alert preview
+  // Fetch Ward-Specific Pulse & Historical Details
   useEffect(() => {
-    if (!selectedWardId) return;
-
     let isMounted = true;
+
     async function loadWardData() {
       try {
-        const scenarioParam = scenarioSelection === 'none' ? undefined : scenarioSelection;
-        const [detRes, fcRes, repRes, alertRes] = await Promise.allSettled([
-          fetchWardDetail(selectedWardId),
-          fetchForecast(selectedWardId, scenarioParam),
-          fetchReports(selectedWardId),
-          fetchAlertPreview(selectedWardId, previewLang),
+        const [pulseData, detailData, forecastData] = await Promise.all([
+          fetchWardPulse(selectedWardId).catch(() => null),
+          fetchWardDetail(selectedWardId).catch(() => null),
+          fetchForecast(selectedWardId).catch(() => null),
         ]);
 
-        if (!isMounted) return;
-
-        if (detRes.status === 'fulfilled') {
-          setWardDetail(detRes.value.ward);
+        if (isMounted) {
+          if (pulseData) setWardPulse(pulseData);
+          if (detailData && detailData.ward) setWardDetail(detailData.ward);
+          if (forecastData && forecastData.forecast) setForecast(forecastData.forecast);
         }
-        if (fcRes.status === 'fulfilled') {
-          setForecast(fcRes.value.forecast);
-        }
-        if (repRes.status === 'fulfilled') {
-          setReports(repRes.value.reports);
-        }
-        if (alertRes.status === 'fulfilled') {
-          setAlertPreview(alertRes.value.preview);
-        }
-      } catch (e) {
-        console.error('Error fetching ward data', e);
+      } catch (err) {
+        console.warn('Ward load error', err);
       }
     }
 
     loadWardData();
-    return () => { isMounted = false; };
-  }, [selectedWardId, previewLang, scenarioSelection]);
+  }, [selectedWardId]);
 
-  // Handle citizen report submit
+  // Handle Community Report Submit
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setReportSubmitting(true);
+    setSubmittingReport(true);
+
     try {
-      await submitReport({
-        ward_id: selectedWardId,
-        status: reportStatus,
-        tanker_booked: reportTankerBooked,
-        phone: reportPhone ? `+91${reportPhone.replace(/\D/g, '')}` : undefined,
-        note: reportNote || undefined,
+      const targetWard = activeTab === 'report' ? reportLocality : selectedWardId;
+      const res = await submitPulseReport({
+        ward_id: targetWard,
+        status: selectedReportStatus,
+        phone: reportPhone.trim() || undefined,
       });
-      setReportSubmitted(true);
-      // Reload reports
-      const updated = await fetchReports(selectedWardId).catch(() => ({ reports: [] }));
-      setReports(updated.reports);
-      setTimeout(() => setReportSubmitted(false), 5000);
-      setReportNote('');
+
+      showToast(res.message || 'Thanks. Your update helps your neighbourhood respond faster.');
       setReportPhone('');
-    } catch (err) {
-      alert(`Submission failed: ${(err as Error).message}`);
+      setReportNote('');
+      setPrivateSupportArranged(false);
+
+      // Refresh pulse data immediately
+      const [newSummary, newWard] = await Promise.all([
+        fetchPulseSummary().catch(() => null),
+        fetchWardPulse(targetWard).catch(() => null),
+      ]);
+      if (newSummary) setPulseSummary(newSummary);
+      if (newWard) setWardPulse(newWard);
+
+      if (activeTab === 'report') {
+        setSelectedWardId(targetWard);
+        switchTab('pulse');
+      }
+    } catch {
+      showToast('Notice: Only one update per household is counted every 30 minutes.');
     } finally {
-      setReportSubmitting(false);
+      setSubmittingReport(false);
     }
   };
 
-  // Handle alert subscription
-  const handleSubscribe = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!subPhone) return;
+  // Active Alert in currently selected ward
+  const activeAlert = wardPulse?.active_alert;
+  const selectedWard = wards.find((w) => w.ward_id === selectedWardId);
+  const currentWardName = selectedWard?.name || 'Kodialbail';
+
+  // Toggle Checklist Item
+  const toggleChecklist = (key: string) => {
+    setCheckedActions((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // Handle Seed Actions in Developer Tools
+  const handleSeedOutage = async () => {
+    setScenarioLoading(true);
     try {
-      await subscribeAlert({
-        phone: `+91${subPhone.replace(/\D/g, '')}`,
-        language: subLang,
-        ward_ids: [selectedWardId],
-      });
-      setSubSuccess(`Subscribed! DEMO NOTICE: In live mode, alerts send via AWS SNS & Amazon Polly. No real SMS sent.`);
-      setSubPhone('');
-      setTimeout(() => setSubSuccess(null), 7000);
+      await seedPulseOutage(selectedWardId);
+      const [newSummary, newWard] = await Promise.all([
+        fetchPulseSummary().catch(() => null),
+        fetchWardPulse(selectedWardId).catch(() => null),
+      ]);
+      if (newSummary) setPulseSummary(newSummary);
+      if (newWard) setWardPulse(newWard);
+      showToast('Simulated 3 independent reports. Alert activated.');
     } catch (err) {
-      alert(`Subscription failed: ${(err as Error).message}`);
+      console.error(err);
+    } finally {
+      setScenarioLoading(false);
     }
   };
 
-  // Simulate incoming edge telemetry tick
-  const simulateEdgeTick = () => {
-    const curWard = wards.find((w) => w.ward_id === selectedWardId) || wards[0];
-    const noise = (Math.random() - 0.5) * 0.1;
-    const base = curWard.groundwater_depth_m || 12.0;
-    const newReading = {
-      timestamp: new Date().toLocaleTimeString(),
-      ward_id: curWard.ward_id,
-      depth_m: Number((base + noise).toFixed(2)),
-      voltage: Number((3.7 + (Math.random() - 0.5) * 0.1).toFixed(2)),
-      rssi: Math.floor(-70 + Math.random() * 15),
-    };
-    setEdgeSimReadings((prev) => [newReading, ...prev.slice(0, 9)]);
+  const handleSeedRecovery = async () => {
+    setScenarioLoading(true);
+    try {
+      await seedPulseRecovery(selectedWardId);
+      const [newSummary, newWard] = await Promise.all([
+        fetchPulseSummary().catch(() => null),
+        fetchWardPulse(selectedWardId).catch(() => null),
+      ]);
+      if (newSummary) setPulseSummary(newSummary);
+      if (newWard) setWardPulse(newWard);
+      showToast('Simulated recovery reports. Incident updated.');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setScenarioLoading(false);
+    }
   };
 
-  const selectedWard = wards.find((w) => w.ward_id === selectedWardId) || wards[0];
-  const activeForecast = forecast || (wardDetail ? wardDetail.forecast : null);
-  const isHistoricalOnly = (selectedWard.risk_level === 'historical_context' || activeForecast?.risk_level === 'historical_context' || activeForecast?.forecast_status === 'historical_context_only') && scenarioSelection === 'none';
-  const isScenario = Boolean(activeForecast?.is_scenario_simulation || scenarioSelection !== 'none');
+  const handleResetScenario = async () => {
+    setScenarioLoading(true);
+    try {
+      await resetPulseScenario();
+      const [newSummary, newWard] = await Promise.all([
+        fetchPulseSummary().catch(() => null),
+        fetchWardPulse(selectedWardId).catch(() => null),
+      ]);
+      if (newSummary) setPulseSummary(newSummary);
+      if (newWard) setWardPulse(newWard);
+      showToast('Simulated data reset. Monitored records cleared.');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setScenarioLoading(false);
+    }
+  };
 
-  // Prepare chart data
-  const forecastChartData = activeForecast && activeForecast.forecast_series
-    ? activeForecast.forecast_series.map((item) => ({
-        date: item.date.slice(5), // mm-dd
-        depth: item.predicted_depth_m,
-      }))
-    : [
-        { date: 'Oct 01', depth: selectedWard.groundwater_depth_m || 12.0 },
-        { date: 'Oct 08', depth: (selectedWard.groundwater_depth_m || 12.0) + 0.3 },
-        { date: 'Oct 15', depth: (selectedWard.groundwater_depth_m || 12.0) + 0.7 },
-        { date: 'Oct 22', depth: (selectedWard.groundwater_depth_m || 12.0) + 1.2 },
-        { date: 'Oct 29', depth: (selectedWard.groundwater_depth_m || 12.0) + 1.8 },
-      ];
-
-  const rainfallChartData = wardDetail && wardDetail.rainfall_series && wardDetail.rainfall_series.length > 0
-    ? wardDetail.rainfall_series.slice(-10).map((r) => ({
-        date: r.date.slice(5),
-        rainfall: r.rainfall_mm,
-      }))
-    : [
-        { date: '10-01', rainfall: 4.2 },
-        { date: '10-02', rainfall: 1.0 },
-        { date: '10-03', rainfall: 0.0 },
-        { date: '10-04', rainfall: 0.0 },
-        { date: '10-05', rainfall: 8.5 },
-        { date: '10-06', rainfall: 2.1 },
-        { date: '10-07', rainfall: 0.0 },
-      ];
+  const handleTestSms = async (live: boolean) => {
+    setSmsTesting(true);
+    try {
+      const res = await testPulseSms(selectedWardId, live);
+      setSmsResult(res);
+      showToast(live && res.sent ? 'Test notification dispatched.' : 'Message preview generated.');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSmsTesting(false);
+    }
+  };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* ─────────────────────────────────────────────────────────────
-          1. TOP DATA HONESTY & PROVENANCE BANNER
-          ───────────────────────────────────────────────────────────── */}
-      <aside
-        className="demo-banner"
-        style={
-          dataMode === 'real_historical'
-            ? { background: 'rgba(16, 185, 129, 0.15)', borderBottom: '1px solid rgba(16, 185, 129, 0.4)', color: '#34d399' }
-            : dataMode === 'hybrid'
-            ? { background: 'rgba(6, 182, 212, 0.15)', borderBottom: '1px solid rgba(6, 182, 212, 0.4)', color: '#38bdf8' }
-            : { background: 'rgba(245, 158, 11, 0.15)', borderBottom: '1px solid rgba(245, 158, 11, 0.4)', color: '#fbbf24' }
-        }
-        aria-label="Data mode notice"
-      >
-        <span style={{ marginRight: '8px' }}>
-          {dataMode === 'real_historical' ? '📊' : dataMode === 'hybrid' ? '🔬' : '⚠️'}
-        </span>
-        {dataMode === 'real_historical' ? (
-          <span>
-            <strong>Historical CGWB data mode — quarterly observations, not live monitoring.</strong> Edge transducers and SMS broadcasts are simulated.
-          </span>
-        ) : dataMode === 'hybrid' ? (
-          <span>
-            <strong>Hybrid mode: groundwater depth is derived from historical CGWB observations; rainfall and ward-level stress estimates include clearly labeled model/demo assumptions.</strong>
-          </span>
-        ) : (
-          <span>
-            <strong>Demo mode — sample/synthetic data.</strong> Operating on sample baselines. No real SMS or automated payments are dispatched.
-          </span>
-        )}
-      </aside>
-
-      {/* ─────────────────────────────────────────────────────────────
-          2. GLOBAL NAVBAR
-          ───────────────────────────────────────────────────────────── */}
-      <nav className="nav">
-        <div className="container nav-inner">
-          <div className="nav-logo">
-            <div className="nav-logo-icon">💧</div>
-            <div>
-              <span style={{ letterSpacing: '-0.02em', fontWeight: 800 }}>JalaNetra</span>
-              <span style={{ fontSize: '0.7rem', color: 'var(--color-brand-sky)', marginLeft: '8px', padding: '2px 8px', background: 'rgba(56, 189, 248, 0.1)', borderRadius: '12px', border: '1px solid rgba(56, 189, 248, 0.2)' }}>
-                Mangaluru Water Security
-              </span>
+    <div className="app-container">
+      {/* ──────────────── Top Navigation ──────────────── */}
+      <header className="navbar">
+        <div className="navbar-inner">
+          <div className="brand-section" onClick={() => switchTab('pulse')}>
+            <div className="brand-logo">
+              <DropletIcon size={22} color="#FFFFFF" />
+            </div>
+            <div className="brand-titles">
+              <div className="brand-name">
+                JalaNetra Pulse
+                <span className="brand-badge">Mangaluru</span>
+              </div>
+              <span className="brand-subtitle">Community water response</span>
             </div>
           </div>
 
-          <ul className="nav-links">
-            <li>
-              <button
-                type="button"
-                className={activeTab === 'dashboard' ? 'active' : ''}
-                onClick={() => setActiveTab('dashboard')}
-              >
-                Dashboard
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={activeTab === 'analytics' ? 'active' : ''}
-                onClick={() => setActiveTab('analytics')}
-              >
-                Depletion Forecast
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={activeTab === 'report' ? 'active' : ''}
-                onClick={() => setActiveTab('report')}
-              >
-                Citizen Sahayak
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={activeTab === 'alerts' ? 'active' : ''}
-                onClick={() => setActiveTab('alerts')}
-              >
-                Alert Dispatcher
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={activeTab === 'edge' ? 'active' : ''}
-                onClick={() => setActiveTab('edge')}
-              >
-                Simulated Edge Feed
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={activeTab === 'transparency' ? 'active' : ''}
-                onClick={() => setActiveTab('transparency')}
-              >
-                Data Provenance
-              </button>
-            </li>
-          </ul>
+          <nav>
+            <ul className="nav-links">
+              <li>
+                <button
+                  type="button"
+                  className={`nav-item ${activeTab === 'pulse' ? 'active' : ''}`}
+                  onClick={() => switchTab('pulse')}
+                >
+                  Pulse
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={`nav-item ${activeTab === 'report' ? 'active' : ''}`}
+                  onClick={() => switchTab('report')}
+                >
+                  Report water
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={`nav-item ${activeTab === 'admin' ? 'active' : ''}`}
+                  onClick={() => switchTab('admin')}
+                >
+                  Response board
+                  {pulseSummary && pulseSummary.active_alert_count > 0 && (
+                    <span className="badge badge-critical" style={{ padding: '1px 5px', fontSize: '0.65rem' }}>
+                      {pulseSummary.active_alert_count}
+                    </span>
+                  )}
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={`nav-item ${activeTab === 'historical' ? 'active' : ''}`}
+                  onClick={() => switchTab('historical')}
+                >
+                  Water context
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={`nav-item ${activeTab === 'about' ? 'active' : ''}`}
+                  onClick={() => switchTab('about')}
+                >
+                  About
+                </button>
+              </li>
+            </ul>
+          </nav>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: isBackendConnected ? '#34d399' : '#fbbf24' }}>
-              <span
-                style={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  background: isBackendConnected ? '#10b981' : '#f59e0b',
-                  display: 'inline-block',
-                  boxShadow: isBackendConnected ? '0 0 8px #10b981' : '0 0 8px #f59e0b',
-                }}
-              />
-              <span>{isBackendConnected ? 'FastAPI Live' : 'Demo Local'}</span>
+          <div className="nav-controls">
+            <select
+              aria-label="Select locality"
+              className="ward-selector"
+              value={selectedWardId}
+              onChange={(e) => {
+                setSelectedWardId(e.target.value);
+                setReportLocality(e.target.value);
+              }}
+            >
+              {wards.map((w) => (
+                <option key={w.ward_id} value={w.ward_id}>
+                  {w.name}
+                </option>
+              ))}
+            </select>
+
+            <div className="live-indicator">
+              <span className="pulse-dot" />
+              <span>Live updates</span>
             </div>
           </div>
         </div>
-      </nav>
+      </header>
 
-      {/* ─────────────────────────────────────────────────────────────
-          3. MAIN CONTAINER
-          ───────────────────────────────────────────────────────────── */}
-      <main className="container page" style={{ flex: 1 }}>
-        {/* Core Promise Hero */}
-        <header className="page-hero" style={{ padding: '2rem 0 1.5rem', textAlign: 'left' }}>
-          <div style={{ display: 'inline-block', marginBottom: '0.75rem' }}>
-            <span className="demo-badge">AWS Environmental Hacks • Heat &amp; Water Track</span>
+      {/* ──────────────── Main Content ──────────────── */}
+      <main className="main-content">
+        {/* Toast Notification */}
+        {toastMessage && (
+          <div className="toast">
+            <CheckCircleIcon size={18} color="#FFFFFF" />
+            <span>{toastMessage}</span>
           </div>
-          <h1 style={{ marginBottom: '0.5rem', fontSize: '2.5rem', lineHeight: '1.2' }}>
-            India’s rainiest coast is running out of water.
-          </h1>
-          <p style={{ fontSize: '1.15rem', color: 'var(--color-text-secondary)', maxWidth: '820px' }}>
-            <strong>JalaNetra</strong> fuses India WRIS open groundwater baselines, IMD precipitation data,
-            crowdsourced citizen reports, and simulated edge well telemetry to tell Mangaluru households
-            <strong> exactly which week to act</strong>.
-          </p>
-        </header>
-
-        {/* ─────────────────────────────────────────────────────────────
-            CORE ACTION ALERT BOX (STALE-DATA GUARDRAIL & SCENARIO-AWARE)
-            ───────────────────────────────────────────────────────────── */}
-        {isHistoricalOnly ? (
-          <section
-            style={{
-              background: 'rgba(30, 41, 59, 0.7)',
-              border: '1.5px solid rgba(148, 163, 184, 0.35)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '1.5rem',
-              marginBottom: '1.5rem',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1rem',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div
-                  style={{
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #475569, #64748b)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1.5rem',
-                  }}
-                >
-                  🏛️
-                </div>
-                <div>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.1em' }}>
-                    HISTORICAL OBSERVATION • CURRENT FORECAST UNAVAILABLE • WARD: {selectedWard.display_name.toUpperCase()}
-                  </span>
-                  <h2 style={{ fontSize: '1.35rem', color: '#f1f5f9', margin: '2px 0 0' }}>
-                    Historical groundwater context — current forecast unavailable
-                  </h2>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  background: 'rgba(15, 23, 42, 0.7)',
-                  padding: '8px 16px',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(148, 163, 184, 0.3)',
-                  textAlign: 'right',
-                }}
-              >
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>GOVERNMENT RECORD DATE</div>
-                <div style={{ fontSize: '1rem', fontWeight: 600, color: '#94a3b8' }}>
-                  {selectedWard.depth_observed_at || 'Quarterly CGWB'}
-                  {selectedWard.observation_age_days ? ` (~${Math.round(selectedWard.observation_age_days / 365)}+ yrs ago)` : ''}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(6, 15, 30, 0.6)', padding: '12px 16px', borderRadius: '8px' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
-                <div style={{ flex: 1, minWidth: '220px', fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
-                  <strong>Freshness Disclosure:</strong>{' '}
-                  {activeForecast?.explanation || `The latest verified CGWB groundwater observation for this matched station is from ${selectedWard.depth_observed_at || 'past government records'}. It is useful for historical context but too old for a current household water forecast.`}
-                  <div style={{ marginTop: '6px', color: '#cbd5e1' }}>
-                    <strong>Recommended Next Step:</strong>{' '}
-                    {activeForecast?.recommended_action || 'This record is historical. Report today’s water availability or connect a recent ward measurement before making a tanker-booking decision.'}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-sm"
-                    onClick={() => setActiveTab('report')}
-                  >
-                    📢 Report Today’s Water Status
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => setScenarioSelection('dry')}
-                  >
-                    🔬 Test What-if Scenarios
-                  </button>
-                </div>
-              </div>
-
-              <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px' }}>
-                <strong>Data Provenance &amp; Freshness:</strong>{' '}
-                {selectedWard.matched_station ? (
-                  <span>
-                    CGWB Monitoring Station: <strong style={{ color: 'var(--color-brand-aqua)' }}>{selectedWard.matched_station}</strong> (Depth: {selectedWard.groundwater_depth_m} m bgl observed on {selectedWard.depth_observed_at || 'Quarterly'}).{' '}
-                    <em>Historical quarterly government groundwater observations; not live groundwater sensor data.</em>
-                  </span>
-                ) : (
-                  <span style={{ color: '#94a3b8' }}>
-                    Historical regional baseline — no live sensor telemetry connected.
-                  </span>
-                )}
-              </div>
-            </div>
-          </section>
-        ) : (
-          <section
-            style={{
-              background: isScenario
-                ? 'linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.12))'
-                : 'linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(239, 68, 68, 0.12))',
-              border: isScenario ? '2px dashed rgba(56, 189, 248, 0.6)' : '2px solid rgba(249, 115, 22, 0.5)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '1.5rem',
-              marginBottom: '1.5rem',
-              boxShadow: isScenario ? '0 8px 32px rgba(6, 182, 212, 0.15)' : '0 8px 32px rgba(249, 115, 22, 0.15)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1rem',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div
-                  style={{
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '12px',
-                    background: isScenario ? 'linear-gradient(135deg, #06b6d4, #3b82f6)' : 'linear-gradient(135deg, #f97316, #ef4444)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1.5rem',
-                  }}
-                >
-                  {isScenario ? '🔬' : '🚨'}
-                </div>
-                <div>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: isScenario ? '#38bdf8' : '#fb923c', letterSpacing: '0.1em' }}>
-                    {isScenario ? 'WHAT-IF SCENARIO SIMULATION' : 'ACTIONABLE CITIZEN EARLY WARNING'} • WARD: {selectedWard.display_name.toUpperCase()}
-                  </span>
-                  <h2 style={{ fontSize: '1.4rem', color: '#ffffff', margin: '2px 0 0' }}>
-                    {activeForecast && activeForecast.weeks_to_dry !== null
-                      ? `Water stress is likely in ${selectedWard.name} in approximately ${activeForecast.weeks_to_dry} ${activeForecast.weeks_to_dry === 1 ? 'week' : 'weeks'}.`
-                      : `Water stress advisory for ${selectedWard.name}.`}
-                  </h2>
-                </div>
-              </div>
-
-              {activeForecast?.book_tanker_by && (
-                <div
-                  style={{
-                    background: 'rgba(0,0,0,0.4)',
-                    padding: '8px 16px',
-                    borderRadius: '12px',
-                    border: isScenario ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid rgba(249, 115, 22, 0.4)',
-                    textAlign: 'right',
-                  }}
-                >
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                    {isScenario ? 'SIMULATED ADVISORY' : 'RECOMMENDED ACTION'}
-                  </div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fbbf24' }}>
-                    Book tanker by {activeForecast.book_tanker_by}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(6, 15, 30, 0.6)', padding: '12px 16px', borderRadius: '8px' }}>
-              {isScenario && (
-                <div style={{ padding: '6px 10px', borderRadius: '6px', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', color: '#38bdf8', fontSize: '0.85rem' }}>
-                  🔬 <strong>Scenario simulation — based on your selected current water report, not a live groundwater reading.</strong>
-                </div>
-              )}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
-                <div style={{ flex: 1, minWidth: '220px', fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
-                  <strong>Heuristic Reason:</strong>{' '}
-                  {activeForecast ? activeForecast.explanation : `Current well depth is ${selectedWard.groundwater_depth_m}m bgl.`}
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-sm"
-                    onClick={() => setActiveTab('report')}
-                  >
-                    📢 Report Tap Status
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => setActiveTab('alerts')}
-                  >
-                    📲 SMS Alert Preview
-                  </button>
-                </div>
-              </div>
-
-              <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px' }}>
-                <strong>Data Provenance &amp; Freshness:</strong>{' '}
-                {selectedWard.matched_station ? (
-                  <span>
-                    CGWB Monitoring Station: <strong style={{ color: 'var(--color-brand-aqua)' }}>{selectedWard.matched_station}</strong> (Observed: {selectedWard.depth_observed_at || 'Quarterly'}).{' '}
-                    <em>Historical quarterly government groundwater observations; not live groundwater sensor data.</em>
-                  </span>
-                ) : (
-                  <span style={{ color: '#fbbf24' }}>
-                    No direct matched government well observation for this ward; using synthetic seasonal fallback.
-                  </span>
-                )}
-              </div>
-            </div>
-          </section>
         )}
 
-        {/* ─────────────────────────────────────────────────────────────
-            WHAT-IF SCENARIO SIMULATOR (DEMO STORY EXPLORER)
-            ───────────────────────────────────────────────────────────── */}
-        <section
-          style={{
-            background: 'rgba(15, 23, 42, 0.75)',
-            border: '1px solid rgba(56, 189, 248, 0.3)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '1.25rem 1.5rem',
-            marginBottom: '2rem',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-            <div>
-              <span style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: '#38bdf8', letterSpacing: '0.1em' }}>
-                WHAT-IF SCENARIO SIMULATOR • DEMO EXPLORER
-              </span>
-              <h3 style={{ fontSize: '1.1rem', margin: '2px 0 0', color: '#ffffff' }}>
-                Simulate Current Household Water Conditions
-              </h3>
-              <p style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', margin: '2px 0 0', maxWidth: '650px' }}>
-                Since CGWB observations are historical, choose a hypothetical present-day ground signal to test how JalaNetra forecasts and alerts respond:
+        {/* ──────── 1. TAB: PULSE (HOME) ──────── */}
+        {activeTab === 'pulse' && (
+          <div>
+            {/* Top Alert Banner if Outage Active in Ward */}
+            {activeAlert && activeAlert.status === 'active' && (
+              <div className="alert-banner critical">
+                <div className="alert-banner-icon">
+                  <AlertCircleIcon size={24} color="#D92D20" />
+                </div>
+                <div className="alert-banner-content">
+                  <div className="alert-banner-title">
+                    Water supply issue reported in {currentWardName}
+                  </div>
+                  <div className="alert-banner-desc">
+                    {activeAlert.independent_report_count} residents reported no water in the last 90 minutes.
+                  </div>
+                  <div className="alert-banner-meta">
+                    <span>Reported by local residents. Verification in progress.</span>
+                    <span>•</span>
+                    <span>Confidence: {activeAlert.confidence.toUpperCase()}</span>
+                    <span>•</span>
+                    <span>First report: {new Date(activeAlert.first_report_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeAlert && activeAlert.status === 'recovery' && (
+              <div className="alert-banner recovery">
+                <div className="alert-banner-icon">
+                  <CheckCircleIcon size={24} color="#12B76A" />
+                </div>
+                <div className="alert-banner-content">
+                  <div className="alert-banner-title">
+                    Community-reported recovery in {currentWardName}
+                  </div>
+                  <div className="alert-banner-desc">
+                    Recent resident reports indicate water supply is restoring. Response teams monitoring pressure.
+                  </div>
+                  <div className="alert-banner-meta">
+                    <span>Reported by local residents. Verification in progress.</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Page Header */}
+            <div className="page-header">
+              <h1 className="page-title">Water status in your neighbourhood</h1>
+              <p className="page-subtitle">
+                See recent community reports and share what is happening at your tap.
               </p>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className={`btn btn-sm ${scenarioSelection === 'none' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setScenarioSelection('none')}
-              >
-                Verified Historical (Default)
-              </button>
-              <button
-                type="button"
-                className={`btn btn-sm ${scenarioSelection === 'normal' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setScenarioSelection('normal')}
-              >
-                💧 Normal supply
-              </button>
-              <button
-                type="button"
-                className={`btn btn-sm ${scenarioSelection === 'low' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setScenarioSelection('low')}
-              >
-                ⚠️ Low supply
-              </button>
-              <button
-                type="button"
-                className={`btn btn-sm ${scenarioSelection === 'dry' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setScenarioSelection('dry')}
-              >
-                🚨 No water (Dry)
-              </button>
-            </div>
-          </div>
+            {/* Main 2-Column Section */}
+            <div className="grid-2">
+              {/* Left Column: Current Status Summary */}
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title">
+                    <MapPinIcon size={18} color="#16324F" />
+                    <span>{currentWardName}</span>
+                  </div>
+                  {activeAlert ? (
+                    <span className={`badge ${activeAlert.status === 'active' ? 'badge-critical' : 'badge-normal'}`}>
+                      {activeAlert.status === 'active' ? 'Issue reported' : 'Recovery reported'}
+                    </span>
+                  ) : (
+                    <span className="badge badge-normal">No active issue</span>
+                  )}
+                </div>
 
-          {scenarioSelection !== 'none' && (
-            <div style={{ marginTop: '0.75rem', padding: '8px 12px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', fontSize: '0.8rem', color: '#fbbf24' }}>
-              🔬 <strong>Scenario simulation — based on your selected current water report, not a live groundwater reading.</strong> Historical CGWB depth and station records remain unperturbed.
-            </div>
-          )}
-        </section>
+                <div style={{ marginBottom: '20px' }}>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#16324F', marginBottom: '4px' }}>
+                    {activeAlert && activeAlert.status === 'active'
+                      ? 'Water supply interruption reported'
+                      : 'No active water issue reported'}
+                  </div>
+                  <div style={{ fontSize: '0.875rem', color: '#475467' }}>
+                    {wardPulse?.reports_last_90m || 0} community updates in the last 90 minutes.
+                  </div>
+                </div>
 
-        {/* ─────────────────────────────────────────────────────────────
-            WARD PICKER RIBBON
-            ───────────────────────────────────────────────────────────── */}
-        <section style={{ marginBottom: '2rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <h3 style={{ fontSize: '1.1rem', color: 'var(--color-text-primary)' }}>Select Mangaluru Ward / Aquifer Zone</h3>
-            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Dakshina Kannada Coastal Belt</span>
-          </div>
+                {/* Report Status Distribution */}
+                {wardPulse && (
+                  <div style={{ marginBottom: '24px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#667085', marginBottom: '6px' }}>
+                      <span>Available: {wardPulse.status_breakdown.available}</span>
+                      <span>Low supply: {wardPulse.status_breakdown.low}</span>
+                      <span>No water: {wardPulse.status_breakdown.dry}</span>
+                    </div>
+                    <div style={{ height: '8px', background: '#F2F4F7', borderRadius: '4px', overflow: 'hidden', display: 'flex' }}>
+                      <div style={{ width: `${(wardPulse.status_breakdown.available / Math.max(1, wardPulse.reports_last_90m)) * 100}%`, background: '#12B76A' }} />
+                      <div style={{ width: `${(wardPulse.status_breakdown.low / Math.max(1, wardPulse.reports_last_90m)) * 100}%`, background: '#F79009' }} />
+                      <div style={{ width: `${(wardPulse.status_breakdown.dry / Math.max(1, wardPulse.reports_last_90m)) * 100}%`, background: '#D92D20' }} />
+                    </div>
+                  </div>
+                )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-            {wards.map((w) => {
-              const isSelected = w.ward_id === selectedWardId;
-              const rColor = RISK_COLORS[w.risk_level] || RISK_COLORS.low;
-              return (
-                <div
-                  key={w.ward_id}
-                  onClick={() => setSelectedWardId(w.ward_id)}
-                  className="card card-clickable"
-                  style={{
-                    padding: '1rem',
-                    border: isSelected ? '2px solid var(--color-brand-aqua)' : '1px solid var(--color-border)',
-                    background: isSelected ? 'rgba(6, 182, 212, 0.08)' : 'var(--color-surface-card)',
-                    position: 'relative',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                    <strong style={{ fontSize: '1rem', color: isSelected ? 'var(--color-brand-aqua)' : 'var(--color-text-primary)' }}>
-                      {w.name}
-                    </strong>
-                    <span
+                {/* Recent Updates Timeline */}
+                <div style={{ borderTop: '1px solid #E4E7EC', paddingTop: '18px' }}>
+                  <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#16324F', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <ClockIcon size={16} color="#667085" />
+                    <span>Recent community updates</span>
+                  </div>
+
+                  {wardPulse && wardPulse.recent_reports.length > 0 ? (
+                    <div className="timeline">
+                      {wardPulse.recent_reports.slice(0, 4).map((r) => (
+                        <div key={r.id} className="timeline-item">
+                          <div
+                            className="timeline-dot"
+                            style={{
+                              backgroundColor:
+                                r.status === 'available'
+                                  ? '#12B76A'
+                                  : r.status === 'low'
+                                  ? '#F79009'
+                                  : '#D92D20',
+                            }}
+                          />
+                          <div className="timeline-content">
+                            <div className="timeline-header">
+                              <span className="timeline-title">
+                                {r.status === 'available'
+                                  ? 'Water available'
+                                  : r.status === 'low'
+                                  ? 'Low supply'
+                                  : 'No water'}
+                              </span>
+                              <span className="timeline-time">
+                                {new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            <div className="timeline-detail">
+                              Verified household update • {r.reporter_key_hash ? r.reporter_key_hash.slice(0, 8) : 'Household'}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '8px', fontSize: '0.8125rem', color: '#667085', textAlign: 'center' }}>
+                      No reports submitted in the last 90 minutes. Normal conditions.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column: Quick Status Report Card */}
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title">
+                    <DropletIcon size={18} color="#2F80ED" />
+                    <span>Report water status</span>
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: '#667085' }}>{currentWardName}</span>
+                </div>
+
+                <p style={{ fontSize: '0.8125rem', color: '#475467', marginBottom: '14px' }}>
+                  What is the water condition at your tap right now?
+                </p>
+
+                <form onSubmit={handleReportSubmit}>
+                  <div className="report-actions-grid">
+                    <button
+                      type="button"
+                      className={`report-btn ${selectedReportStatus === 'available' ? 'selected-available' : ''}`}
+                      onClick={() => setSelectedReportStatus('available')}
+                    >
+                      <div className="report-btn-icon" style={{ background: '#ECFDF3', color: '#12B76A' }}>
+                        <CheckCircleIcon size={18} color="#12B76A" />
+                      </div>
+                      <div className="report-btn-title">Water available</div>
+                      <div className="report-btn-desc">Normal pressure</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`report-btn ${selectedReportStatus === 'low' ? 'selected-low' : ''}`}
+                      onClick={() => setSelectedReportStatus('low')}
+                    >
+                      <div className="report-btn-icon" style={{ background: '#FEF0C7', color: '#F79009' }}>
+                        <AlertTriangleIcon size={18} color="#F79009" />
+                      </div>
+                      <div className="report-btn-title">Low supply</div>
+                      <div className="report-btn-desc">Weak trickle</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`report-btn btn-dry ${selectedReportStatus === 'dry' ? 'selected-dry' : ''}`}
+                      onClick={() => setSelectedReportStatus('dry')}
+                    >
+                      <div className="report-btn-icon" style={{ background: selectedReportStatus === 'dry' ? '#FEF3F2' : '#FFFFFF', color: '#D92D20' }}>
+                        <AlertCircleIcon size={18} color="#D92D20" />
+                      </div>
+                      <div className="report-btn-title">No water</div>
+                      <div className="report-btn-desc">Taps dry</div>
+                    </button>
+                  </div>
+
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#475467', marginBottom: '4px' }}>
+                      Phone number (Optional — for alert updates)
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="e.g. 9876543210"
+                      value={reportPhone}
+                      onChange={(e) => setReportPhone(e.target.value)}
+                      maxLength={10}
                       style={{
-                        fontSize: '0.7rem',
-                        fontWeight: 700,
-                        padding: '2px 8px',
-                        borderRadius: '12px',
-                        background: rColor.bg,
-                        color: rColor.text,
-                        border: `1px solid ${rColor.border}`,
-                        textTransform: 'uppercase',
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid #E4E7EC',
+                        fontSize: '0.875rem',
+                        outline: 'none',
+                      }}
+                    />
+                    <div style={{ fontSize: '0.6875rem', color: '#667085', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <ShieldCheckIcon size={13} color="#667085" />
+                      <span>Your number is used only for optional local alerts and is never shown publicly.</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={submittingReport}
+                    style={{ width: '100%', padding: '11px' }}
+                  >
+                    {submittingReport ? 'Submitting...' : 'Submit update'}
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* Monitored Neighbourhoods Summary List */}
+            <div className="card" style={{ marginBottom: '24px' }}>
+              <div className="card-header">
+                <div className="card-title">
+                  <UsersIcon size={18} color="#16324F" />
+                  <span>Monitored neighbourhoods</span>
+                </div>
+                <span style={{ fontSize: '0.75rem', color: '#667085' }}>Mangaluru City</span>
+              </div>
+
+              <div className="grid-3">
+                {wards.map((w) => {
+                  const isSelected = w.ward_id === selectedWardId;
+                  const isAlert = pulseSummary?.active_alerts.some((a) => a.ward_id === w.ward_id && a.status === 'active');
+                  const count = pulseSummary?.wards_monitored.find((wm) => wm.ward_id === w.ward_id)?.reports_90m || 0;
+
+                  return (
+                    <div
+                      key={w.ward_id}
+                      onClick={() => setSelectedWardId(w.ward_id)}
+                      style={{
+                        padding: '14px 16px',
+                        borderRadius: '8px',
+                        border: isSelected ? '1.5px solid #2F80ED' : '1px solid #E4E7EC',
+                        backgroundColor: isSelected ? '#EEF4FD' : '#FFFFFF',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
                       }}
                     >
-                      {w.risk_level === 'historical_context' ? 'Historical' : w.risk_level}
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
-                    <span>Depth:</span>
-                    <strong style={{ color: 'var(--color-text-primary)' }}>{w.groundwater_depth_m} m bgl</strong>
-                  </div>
-
-                  {w.depth_observed_at && (
-                    <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                      Govt Record: {w.depth_observed_at}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontWeight: 600, color: '#16324F', fontSize: '0.9375rem' }}>{w.name}</span>
+                        {isAlert ? (
+                          <span className="badge badge-critical" style={{ fontSize: '0.6875rem' }}>Issue</span>
+                        ) : (
+                          <span className="badge badge-normal" style={{ fontSize: '0.6875rem' }}>Normal</span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#667085' }}>
+                        {count} updates in last 90m
+                      </div>
                     </div>
-                  )}
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
-                    <span>Forecast:</span>
-                    <span style={{ color: w.risk_level === 'historical_context' ? '#94a3b8' : (w.days_to_dry_estimate && w.days_to_dry_estimate < 15 ? '#f87171' : 'var(--color-text-primary)') }}>
-                      {w.risk_level === 'historical_context' ? 'Historical Context' : (w.days_to_dry_estimate ? `~${w.days_to_dry_estimate} days` : 'Adequate')}
-                    </span>
-                  </div>
-
-                  {w.book_tanker_by && w.risk_level !== 'historical_context' && (
-                    <div style={{ marginTop: '8px', fontSize: '0.75rem', color: '#fbbf24', background: 'rgba(245, 158, 11, 0.1)', padding: '4px 6px', borderRadius: '4px' }}>
-                      Tanker by: {w.book_tanker_by}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* ─────────────────────────────────────────────────────────────
-            TAB CONTENT: DASHBOARD & OVERVIEW
-            ───────────────────────────────────────────────────────────── */}
-        {activeTab === 'dashboard' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            {/* Quick Stats Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-              <div className="card">
-                <span className="stat-label">Well Groundwater Depth</span>
-                <div className="stat-value" style={{ color: 'var(--color-brand-sky)' }}>
-                  {selectedWard.groundwater_depth_m} <span style={{ fontSize: '1rem' }}>m bgl</span>
-                </div>
-                <span className="stat-sub">Depth below ground level</span>
-              </div>
-
-              <div className="card">
-                <span className="stat-label">7-Day Local Rainfall</span>
-                <div className="stat-value" style={{ color: 'var(--color-brand-teal)' }}>
-                  {selectedWard.rainfall_7d_mm || 12.8} <span style={{ fontSize: '1rem' }}>mm</span>
-                </div>
-                <span className="stat-sub">IMD Station / Synthetic gauge</span>
-              </div>
-
-              <div className="card">
-                <span className="stat-label">Aquifer Stress Level</span>
-                <div className="stat-value" style={{ color: RISK_COLORS[selectedWard.risk_level]?.text }}>
-                  {selectedWard.risk_level.toUpperCase()}
-                </div>
-                <span className="stat-sub">Confidence: {selectedWard.confidence}</span>
-              </div>
-
-              <div className="card">
-                <span className="stat-label">Estimated Days to Dry</span>
-                <div className="stat-value" style={{ color: '#fb923c' }}>
-                  {selectedWard.days_to_dry_estimate ? `${selectedWard.days_to_dry_estimate} d` : 'Stable'}
-                </div>
-                <span className="stat-sub">{selectedWard.book_tanker_by ? `Book: ${selectedWard.book_tanker_by}` : 'No immediate tanker needed'}</span>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Interactive Charts Section */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem' }}>
-              {/* Depletion Curve Chart */}
-              <div className="card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                  <div>
-                    <h3 style={{ fontSize: '1.1rem' }}>Groundwater Level &amp; Forecast</h3>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                      Depth in metres below ground level (higher = lower water table)
-                    </p>
-                  </div>
-                  <span className="demo-badge">Forecast Model</span>
-                </div>
-
-                <div style={{ height: '240px', width: '100%' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={forecastChartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                      <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
-                      <YAxis stroke="#64748b" domain={['dataMin - 1', 'dataMax + 2']} fontSize={12} />
-                      <Tooltip
-                        contentStyle={{ background: '#0f2444', borderColor: '#38bdf8', borderRadius: '8px', color: '#f0f9ff' }}
-                        formatter={(val: any) => [`${Number(val).toFixed(2)} m bgl`, 'Water Depth']}
-                      />
-                      <ReferenceLine y={16} label={{ value: 'Configurable demo stress threshold (16m bgl)', fill: '#ef4444', fontSize: 10 }} stroke="#ef4444" strokeDasharray="4 4" />
-                      <Line type="monotone" dataKey="depth" stroke="#38bdf8" strokeWidth={3} dot={{ r: 4, fill: '#06b6d4' }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Rainfall Chart */}
-              <div className="card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                  <div>
-                    <h3 style={{ fontSize: '1.1rem' }}>Precipitation History</h3>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                      Precipitation (mm) over observation cycle
-                    </p>
-                  </div>
-                  <span className="demo-badge">IMD / Sample</span>
-                </div>
-
-                <div style={{ height: '240px', width: '100%' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={rainfallChartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                      <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
-                      <YAxis stroke="#64748b" fontSize={12} />
-                      <Tooltip
-                        contentStyle={{ background: '#0f2444', borderColor: '#0d9488', borderRadius: '8px', color: '#f0f9ff' }}
-                        formatter={(val: any) => [`${val} mm`, 'Rainfall']}
-                      />
-                      <Bar dataKey="rainfall" fill="#0d9488" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Action Cards Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-              <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div>
-                  <h4 style={{ color: 'var(--color-brand-sky)', marginBottom: '8px' }}>📢 Citizen Ground Feedback</h4>
-                  <p style={{ fontSize: '0.9rem', marginBottom: '1rem' }}>
-                    Are your taps running dry today in {selectedWard.name}? Crowdsourced reports calibrate municipal tanker routes.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={() => setActiveTab('report')}
-                >
-                  Submit 1-Click Tap Status
-                </button>
-              </div>
-
-              <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div>
-                  <h4 style={{ color: '#fbbf24', marginBottom: '8px' }}>📲 Simulated Alert Dispatcher</h4>
-                  <p style={{ fontSize: '0.9rem', marginBottom: '1rem' }}>
-                    Preview multilingual SMS and synthesized Polly voice dispatches sent to registered residents.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setActiveTab('alerts')}
-                >
-                  Inspect SMS &amp; Voice Broadcasts
-                </button>
-              </div>
-
-              <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div>
-                  <h4 style={{ color: '#34d399', marginBottom: '8px' }}>📡 AWS IoT Greengrass Node Roadmap</h4>
-                  <p style={{ fontSize: '0.9rem', marginBottom: '1rem' }}>
-                    Simulated edge telemetry for a future optional AWS IoT Greengrass sensor-node roadmap. No physical edge device was used in this demo.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setActiveTab('edge')}
-                >
-                  Open Edge Telemetry Feed
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ─────────────────────────────────────────────────────────────
-            TAB CONTENT: DEPLETION FORECAST DEEP-DIVE
-            ───────────────────────────────────────────────────────────── */}
-        {activeTab === 'analytics' && (
-          <div className="card" style={{ padding: '2rem' }}>
-            <div className="section-header">
-              <div className="section-eyebrow">AQUIFER MODEL EXPLANATION</div>
-              <h2>Depletion Trajectory &amp; Rule-Based Forecast</h2>
-              <p>
-                Mangaluru’s lateritic aquifer responds sharply to the cessation of the South-West monsoon.
-                JalaNetra’s transparent heuristic models depletion rate based on depth headroom, post-monsoon draw,
-                and precipitation recharge.
-              </p>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-              <div style={{ background: 'var(--color-surface-2)', padding: '1.25rem', borderRadius: '12px' }}>
-                <span className="stat-label">Model Architecture</span>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-brand-sky)', margin: '4px 0' }}>
-                  Deterministic Coastal Aquifer Heuristic
-                </div>
-                <p style={{ fontSize: '0.85rem' }}>
-                  No unexplainable black-box ML. Clear, auditable rules based on CGWB geological benchmarks for coastal Karnataka.
-                </p>
-              </div>
-
-              <div style={{ background: 'var(--color-surface-2)', padding: '1.25rem', borderRadius: '12px' }}>
-                <span className="stat-label">Depletion Rate</span>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fb923c', margin: '4px 0' }}>
-                  {activeForecast && activeForecast.depth_trend_m_per_month !== null
-                    ? `${activeForecast.depth_trend_m_per_month > 0 ? '+' : ''}${activeForecast.depth_trend_m_per_month} m / month`
-                    : '+0.50 m / month (Seasonal dry estimate)'}
-                </div>
-                <p style={{ fontSize: '0.85rem' }}>
-                  Reflects seasonal recharge slowing down and domestic borewell extraction.
-                </p>
-              </div>
-
-              <div style={{ background: 'var(--color-surface-2)', padding: '1.25rem', borderRadius: '12px' }}>
-                <span className="stat-label">Confidence Score</span>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#34d399', margin: '4px 0' }}>
-                  {selectedWard.confidence.toUpperCase()}
-                </div>
-                <p style={{ fontSize: '0.85rem' }}>
-                  Automatically downgraded to &lsquo;low&rsquo; when operating on sparse or synthetic sample records.
-                </p>
-              </div>
-            </div>
-
-            <div style={{ background: 'rgba(6, 15, 30, 0.7)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
-              <h4 style={{ color: 'var(--color-brand-aqua)', marginBottom: '8px' }}>Official Forecast Summary</h4>
-              <p style={{ fontSize: '1rem', color: 'var(--color-text-primary)', marginBottom: '1rem' }}>
-                {activeForecast?.explanation || 'Ward groundwater levels are entering critical dry-season trajectory.'}
-              </p>
-              <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '10px' }}>
-                <strong>Recommended Action:</strong> {activeForecast?.recommended_action || 'Prepare tanker backup schedule.'}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ─────────────────────────────────────────────────────────────
-            TAB CONTENT: CITIZEN REPORTING ("JALANETRA SAHAYAK")
-            ───────────────────────────────────────────────────────────── */}
-        {activeTab === 'report' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '2rem' }}>
+            {/* "What happens next?" 3-Step Section */}
             <div className="card">
-              <div className="section-header" style={{ marginBottom: '1.5rem' }}>
-                <div className="section-eyebrow">CITIZEN CROWDSOURCING</div>
-                <h3>Submit Water Supply Status</h3>
-                <p style={{ fontSize: '0.85rem' }}>
-                  Citizen ground reports directly influence JalaNetra’s ward stress rating. A single verified dry report elevates risk.
-                </p>
+              <div className="card-title" style={{ marginBottom: '16px' }}>
+                <InfoIcon size={18} color="#2F80ED" />
+                <span>How neighbourhood response works</span>
               </div>
 
-              {reportSubmitted && (
-                <div className="alert-box success" style={{ marginBottom: '1rem' }}>
-                  <span>✓</span>
-                  <div>
-                    <strong>Report Recorded!</strong> Thank you for updating ground truth for {selectedWard.name}.
-                    Phone masked for privacy.
+              <div className="grid-3" style={{ marginBottom: 0 }}>
+                <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E4E7EC' }}>
+                  <div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#16324F', marginBottom: '4px' }}>
+                    1. Residents report
+                  </div>
+                  <div style={{ fontSize: '0.8125rem', color: '#475467', lineHeight: 1.45 }}>
+                    Households submit tap status in 1 click. Privacy is protected through cryptographic hashing.
                   </div>
                 </div>
-              )}
 
-              <form onSubmit={handleReportSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div className="form-group">
-                  <label className="form-label">Ward</label>
+                <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E4E7EC' }}>
+                  <div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#16324F', marginBottom: '4px' }}>
+                    2. Pattern detection
+                  </div>
+                  <div style={{ fontSize: '0.8125rem', color: '#475467', lineHeight: 1.45 }}>
+                    When 3 independent reports occur in the same ward within 90 minutes, an alert is triggered.
+                  </div>
+                </div>
+
+                <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E4E7EC' }}>
+                  <div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#16324F', marginBottom: '4px' }}>
+                    3. Local coordination
+                  </div>
+                  <div style={{ fontSize: '0.8125rem', color: '#475467', lineHeight: 1.45 }}>
+                    Ward volunteers verify supply lines, inspect booster pumps, and coordinate tanker support.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ──────── 2. TAB: REPORT WATER ──────── */}
+        {activeTab === 'report' && (
+          <div style={{ maxWidth: '640px', margin: '0 auto' }}>
+            <div className="page-header" style={{ textAlign: 'center' }}>
+              <h1 className="page-title">Share today's water status</h1>
+              <p className="page-subtitle">
+                Help your neighbourhood detect interruptions early. Your report is grouped anonymously with nearby households.
+              </p>
+            </div>
+
+            <div className="card">
+              <form onSubmit={handleReportSubmit}>
+                {/* Locality Selector */}
+                <div style={{ marginBottom: '18px' }}>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#16324F', marginBottom: '6px' }}>
+                    Select neighbourhood
+                  </label>
                   <select
-                    className="form-select"
-                    value={selectedWardId}
-                    onChange={(e) => setSelectedWardId(e.target.value)}
+                    className="ward-selector"
+                    value={reportLocality}
+                    onChange={(e) => setReportLocality(e.target.value)}
+                    style={{ width: '100%', padding: '10px 12px' }}
                   >
                     {wards.map((w) => (
                       <option key={w.ward_id} value={w.ward_id}>
-                        {w.display_name}
+                        {w.name}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Tap Status Today</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                {/* Status Selection */}
+                <div style={{ marginBottom: '18px' }}>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#16324F', marginBottom: '6px' }}>
+                    Current water condition
+                  </label>
+                  <div className="report-actions-grid">
                     <button
                       type="button"
-                      className={`btn btn-sm ${reportStatus === 'came' ? 'btn-primary' : 'btn-secondary'}`}
-                      onClick={() => setReportStatus('came')}
-                      style={{ justifyContent: 'center' }}
+                      className={`report-btn ${selectedReportStatus === 'available' ? 'selected-available' : ''}`}
+                      onClick={() => setSelectedReportStatus('available')}
                     >
-                      💧 Normal Flow
+                      <CheckCircleIcon size={20} color="#12B76A" />
+                      <div className="report-btn-title">Available</div>
+                      <div className="report-btn-desc">Normal flow</div>
                     </button>
+
                     <button
                       type="button"
-                      className={`btn btn-sm ${reportStatus === 'low' ? 'btn-primary' : 'btn-secondary'}`}
-                      onClick={() => setReportStatus('low')}
-                      style={{ justifyContent: 'center' }}
+                      className={`report-btn ${selectedReportStatus === 'low' ? 'selected-low' : ''}`}
+                      onClick={() => setSelectedReportStatus('low')}
                     >
-                      ⚠️ Low Pressure
+                      <AlertTriangleIcon size={20} color="#F79009" />
+                      <div className="report-btn-title">Low supply</div>
+                      <div className="report-btn-desc">Weak pressure</div>
                     </button>
+
                     <button
                       type="button"
-                      className={`btn btn-sm ${reportStatus === 'dry' ? 'btn-danger' : 'btn-secondary'}`}
-                      onClick={() => setReportStatus('dry')}
-                      style={{ justifyContent: 'center' }}
+                      className={`report-btn btn-dry ${selectedReportStatus === 'dry' ? 'selected-dry' : ''}`}
+                      onClick={() => setSelectedReportStatus('dry')}
                     >
-                      ❌ Dry / No Water
+                      <div className="report-btn-icon" style={{ background: selectedReportStatus === 'dry' ? '#FEF3F2' : '#FFFFFF', color: '#D92D20' }}>
+                        <AlertCircleIcon size={20} color="#D92D20" />
+                      </div>
+                      <div className="report-btn-title">No water</div>
+                      <div className="report-btn-desc">Taps dry</div>
                     </button>
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={reportTankerBooked}
-                      onChange={(e) => setReportTankerBooked(e.target.checked)}
-                      style={{ width: '18px', height: '18px', accentColor: 'var(--color-brand-teal)' }}
-                    />
-                    <span style={{ fontSize: '0.9rem' }}>I already ordered a private water tanker today</span>
+                {/* Optional Note */}
+                <div style={{ marginBottom: '18px' }}>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#16324F', marginBottom: '6px' }}>
+                    Optional details
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="e.g. Municipal supply cut off since 7 AM, booster pump issue..."
+                    value={reportNote}
+                    onChange={(e) => setReportNote(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid #E4E7EC',
+                      fontSize: '0.875rem',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+
+                {/* Private Support Checkbox */}
+                <div style={{ marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="checkbox"
+                    id="supportCheckbox"
+                    checked={privateSupportArranged}
+                    onChange={(e) => setPrivateSupportArranged(e.target.checked)}
+                    style={{ width: '16px', height: '16px' }}
+                  />
+                  <label htmlFor="supportCheckbox" style={{ fontSize: '0.8125rem', color: '#475467', cursor: 'pointer' }}>
+                    I have arranged private tanker support for my building
                   </label>
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Phone Number (Optional - Masked &amp; Private)</label>
+                {/* Phone Number */}
+                <div style={{ marginBottom: '22px' }}>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#16324F', marginBottom: '6px' }}>
+                    Mobile number (Optional opt-in)
+                  </label>
                   <input
                     type="tel"
-                    className="form-input"
-                    placeholder="9876543210"
+                    placeholder="e.g. 9876543210"
                     value={reportPhone}
                     onChange={(e) => setReportPhone(e.target.value)}
                     maxLength={10}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid #E4E7EC',
+                      fontSize: '0.875rem',
+                      outline: 'none',
+                    }}
                   />
-                  <span className="form-hint">Stored strictly as masked token (e.g. +91 98*** **210). Never shared.</span>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Additional Observations (Optional)</label>
-                  <textarea
-                    className="form-textarea"
-                    rows={2}
-                    placeholder="e.g. Well pump sucking air since 6 AM; tanker arrived after 4 hours delay."
-                    value={reportNote}
-                    onChange={(e) => setReportNote(e.target.value)}
-                  />
+                  <div style={{ fontSize: '0.6875rem', color: '#667085', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <ShieldCheckIcon size={13} color="#667085" />
+                    <span>Your number is used only for optional local alerts and is never shown publicly.</span>
+                  </div>
                 </div>
 
                 <button
                   type="submit"
                   className="btn btn-primary"
-                  disabled={reportSubmitting}
+                  disabled={submittingReport}
+                  style={{ width: '100%', padding: '12px', fontSize: '0.9375rem' }}
                 >
-                  {reportSubmitting ? 'Recording...' : 'Submit Citizen Report'}
+                  {submittingReport ? 'Submitting...' : 'Submit update'}
                 </button>
               </form>
             </div>
+          </div>
+        )}
 
-            {/* Recent Reports in this ward */}
-            <div className="card">
-              <div className="section-header" style={{ marginBottom: '1rem' }}>
-                <div className="section-eyebrow">COMMUNITY PULSE</div>
-                <h3>Recent Reports in {selectedWard.name}</h3>
-                <p style={{ fontSize: '0.85rem' }}>Live ground feed recorded in local database.</p>
+        {/* ──────── 3. TAB: RESPONSE BOARD (ADMIN) ──────── */}
+        {activeTab === 'admin' && (
+          <div>
+            <div className="page-header">
+              <h1 className="page-title">Response board</h1>
+              <p className="page-subtitle">
+                Operational overview for apartment associations, ward volunteers, and community responders.
+              </p>
+            </div>
+
+            {/* High-level Counters */}
+            <div className="grid-4">
+              <div className="stat-card">
+                <div className="stat-label">Active alerts</div>
+                <div className="stat-value" style={{ color: pulseSummary && pulseSummary.active_alert_count > 0 ? '#D92D20' : '#12B76A' }}>
+                  {pulseSummary?.active_alert_count || 0}
+                </div>
+                <div className="stat-sub">Across 5 monitored wards</div>
               </div>
 
-              {reports.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>
-                  No citizen reports submitted for this ward yet today. Be the first to report!
+              <div className="stat-card">
+                <div className="stat-label">Recent reports</div>
+                <div className="stat-value">{pulseSummary?.total_reports_90m || 0}</div>
+                <div className="stat-sub">Last 90-minute rolling window</div>
+              </div>
+
+              <div className="stat-card">
+                <div className="stat-label">24-hour total</div>
+                <div className="stat-value">{pulseSummary?.total_reports_24h || 0}</div>
+                <div className="stat-sub">Verified community updates</div>
+              </div>
+
+              <div className="stat-card">
+                <div className="stat-label">Detection rule</div>
+                <div className="stat-value" style={{ fontSize: '1.25rem', color: '#16324F' }}>3 reports</div>
+                <div className="stat-sub">90-minute cluster threshold</div>
+              </div>
+            </div>
+
+            {/* Active Issues Section */}
+            <div className="card" style={{ marginBottom: '24px' }}>
+              <div className="card-header">
+                <div className="card-title">
+                  <AlertCircleIcon size={18} color="#D92D20" />
+                  <span>Reported interruptions</span>
+                </div>
+                <span style={{ fontSize: '0.75rem', color: '#667085' }}>Live incident queue</span>
+              </div>
+
+              {pulseSummary && pulseSummary.active_alerts.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {pulseSummary.active_alerts.map((alert) => {
+                    const wardName = wards.find((w) => w.ward_id === alert.ward_id)?.name || alert.ward_id;
+                    const actionKey = `alert_${alert.id}_`;
+
+                    return (
+                      <div
+                        key={alert.id}
+                        style={{
+                          border: '1px solid #E4E7EC',
+                          borderRadius: '8px',
+                          padding: '18px',
+                          background: alert.status === 'active' ? '#FEFDFD' : '#F8FAFC',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={{ fontWeight: 700, fontSize: '1.0625rem', color: '#16324F' }}>{wardName}</span>
+                            <span className={`badge ${alert.status === 'active' ? 'badge-critical' : 'badge-normal'}`}>
+                              {alert.status === 'active' ? 'Active issue' : 'Recovery reported'}
+                            </span>
+                          </div>
+                          <span style={{ fontSize: '0.75rem', color: '#667085' }}>
+                            Ref #{String(alert.id).slice(0, 8)}
+                          </span>
+                        </div>
+
+                        <div style={{ fontSize: '0.875rem', color: '#475467', marginBottom: '14px' }}>
+                          <strong>{alert.independent_report_count} independent households</strong> reported no water. Trigger reason: {alert.trigger_reason}
+                        </div>
+
+                        <div className="info-box" style={{ marginBottom: '16px' }}>
+                          <InfoIcon size={18} color="#159E9C" />
+                          <span>Reported by local residents. Verification in progress. Initial report at {new Date(alert.first_report_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.</span>
+                        </div>
+
+                        {/* Action Checklist */}
+                        <div style={{ background: '#F8FAFC', padding: '14px', borderRadius: '6px', border: '1px solid #E4E7EC', marginBottom: '14px' }}>
+                          <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#16324F', marginBottom: '8px' }}>
+                            Recommended next actions
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            {[
+                              { id: 'verify', label: 'Verify municipal pipeline pressure with neighbours' },
+                              { id: 'inspect', label: 'Inspect local borewell / booster pump electricals' },
+                              { id: 'tanker', label: 'Coordinate emergency private tanker support if needed' },
+                              { id: 'escalate', label: 'Escalate to ward water utility helpline' },
+                            ].map((item) => {
+                              const isChecked = !!checkedActions[actionKey + item.id];
+                              return (
+                                <label
+                                  key={item.id}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    fontSize: '0.8125rem',
+                                    color: isChecked ? '#98A2B3' : '#344054',
+                                    textDecoration: isChecked ? 'line-through' : 'none',
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => toggleChecklist(actionKey + item.id)}
+                                  />
+                                  <span>{item.label}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Fast Resolution Actions */}
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={async () => {
+                              await submitPulseReport({ ward_id: alert.ward_id, status: 'restored' });
+                              showToast('Recovery status recorded.');
+                              const s = await fetchPulseSummary();
+                              setPulseSummary(s);
+                            }}
+                          >
+                            <RefreshIcon size={15} color="#12B76A" />
+                            <span>Record restoration update</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '420px', overflowY: 'auto' }}>
-                  {reports.map((r, i) => (
-                    <div
-                      key={r.id || i}
-                      style={{
-                        background: 'var(--color-surface-2)',
-                        padding: '12px',
-                        borderRadius: '8px',
-                        borderLeft: `4px solid ${r.status === 'dry' ? '#ef4444' : r.status === 'low' ? '#f59e0b' : '#10b981'}`,
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '0.8rem', color: r.status === 'dry' ? '#f87171' : r.status === 'low' ? '#fbbf24' : '#34d399' }}>
-                          Status: {r.status === 'dry' ? 'No Supply (Dry)' : r.status === 'low' ? 'Low Pressure' : 'Normal Flow'}
-                        </span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                          {r.created_at ? new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent'}
-                        </span>
+                <div style={{ padding: '28px 20px', textAlign: 'center', color: '#667085', background: '#F8FAFC', borderRadius: '8px' }}>
+                  <CheckCircleIcon size={32} color="#12B76A" style={{ margin: '0 auto 8px', display: 'block' }} />
+                  <div style={{ fontWeight: 600, color: '#16324F', marginBottom: '4px' }}>All monitored wards are operating normally</div>
+                  <div style={{ fontSize: '0.8125rem' }}>No active water interruptions reported in the last 90 minutes.</div>
+
+                  {/* Compact Recent Activity Block */}
+                  <div
+                    style={{
+                      marginTop: '20px',
+                      paddingTop: '16px',
+                      borderTop: '1px solid #E4E7EC',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: '28px',
+                      flexWrap: 'wrap',
+                      textAlign: 'left',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: '0.6875rem', fontWeight: 600, textTransform: 'uppercase', color: '#667085', letterSpacing: '0.04em' }}>
+                        Resident updates today
                       </div>
-                      {r.tanker_booked && (
-                        <div style={{ fontSize: '0.75rem', color: '#fb923c', marginTop: '4px' }}>
-                          🚚 Private tanker booked
-                        </div>
-                      )}
-                      {r.note && (
-                        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
-                          &ldquo;{r.note}&rdquo;
-                        </p>
-                      )}
+                      <div style={{ fontSize: '1.0625rem', fontWeight: 700, color: '#16324F', marginTop: '2px' }}>
+                        {pulseSummary?.total_reports_24h ?? 0}
+                      </div>
                     </div>
-                  ))}
+
+                    <div style={{ width: '1px', height: '28px', background: '#E4E7EC' }} />
+
+                    <div>
+                      <div style={{ fontSize: '0.6875rem', fontWeight: 600, textTransform: 'uppercase', color: '#667085', letterSpacing: '0.04em' }}>
+                        Below alert threshold
+                      </div>
+                      <div style={{ fontSize: '1.0625rem', fontWeight: 700, color: '#12B76A', marginTop: '2px' }}>
+                        {(pulseSummary?.wards_monitored.length || wards.length) - (pulseSummary?.active_alert_count || 0)} of {pulseSummary?.wards_monitored.length || wards.length} wards
+                      </div>
+                    </div>
+
+                    <div style={{ width: '1px', height: '28px', background: '#E4E7EC' }} />
+
+                    <div>
+                      <div style={{ fontSize: '0.6875rem', fontWeight: 600, textTransform: 'uppercase', color: '#667085', letterSpacing: '0.04em' }}>
+                        Latest update
+                      </div>
+                      <div style={{ fontSize: '1.0625rem', fontWeight: 700, color: '#16324F', marginTop: '2px' }}>
+                        {pulseSummary?.updated_at
+                          ? new Date(pulseSummary.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                          : 'Monitoring live'}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* ─────────────────────────────────────────────────────────────
-            TAB CONTENT: ALERT DISPATCHER (SIMULATED AWS SNS & POLLY)
-            ───────────────────────────────────────────────────────────── */}
-        {activeTab === 'alerts' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '2rem' }}>
-            {/* Live Alert Preview Card */}
-            <div className="card">
-              <div className="section-header" style={{ marginBottom: '1rem' }}>
-                <div className="section-eyebrow">AWS SNS &amp; AMAZON POLLY PREVIEW</div>
-                <h3>Illustrative Alert Scenario Preview</h3>
-                <div style={{ margin: '8px 0 12px', padding: '8px 12px', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '8px', fontSize: '0.8rem', color: '#38bdf8' }}>
-                  ℹ️ <strong>Illustrative scenario preview — not triggered by current measurements.</strong>
-                </div>
-                <p style={{ fontSize: '0.85rem' }}>
-                  Inspect the automated SMS and synthesized voice notification scripts configured for Amazon Polly and AWS SNS.
-                </p>
-              </div>
+        {/* ──────── 4. TAB: WATER CONTEXT (HISTORICAL CGWB) ──────── */}
+        {activeTab === 'historical' && (
+          <div>
+            <div className="page-header">
+              <h1 className="page-title">Groundwater context</h1>
+              <p className="page-subtitle">
+                Historical groundwater observations near your selected neighbourhood.
+              </p>
+            </div>
 
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '1.25rem' }}>
-                <button
-                  type="button"
-                  className={`btn btn-sm ${previewLang === 'en-IN' ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setPreviewLang('en-IN')}
-                >
-                  English (en-IN)
-                </button>
-                <button
-                  type="button"
-                  className={`btn btn-sm ${previewLang === 'hi-IN' ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setPreviewLang('hi-IN')}
-                >
-                  Hindi / हिन्दी (hi-IN)
-                </button>
-              </div>
-
-              {/* SMS Bubble */}
-              <div style={{ marginBottom: '1.5rem' }}>
-                <span className="stat-label">📱 SMS Message Payload</span>
-                <div
-                  style={{
-                    background: '#07182e',
-                    border: '1px solid rgba(56, 189, 248, 0.3)',
-                    borderRadius: '12px',
-                    padding: '1rem',
-                    fontFamily: 'monospace',
-                    fontSize: '0.9rem',
-                    color: '#e0f2fe',
-                    lineHeight: '1.5',
-                    marginTop: '6px',
-                  }}
-                >
-                  {previewLang === 'en-IN'
-                    ? (alertPreview?.sms_text_en || `[SCENARIO PREVIEW] JalaNetra: Illustrative preview for ${selectedWard.name}. Historical CGWB observation only — current forecast unavailable. Report status at jalanetra.demo`)
-                    : (alertPreview?.sms_text_hi || `[परिदृश्य पूर्वावलोकन] JalaNetra: ${selectedWard.name} के लिए सांकेतिक पूर्वावलोकन। केवल ऐतिहासिक CGWB डेटा — वर्तमान पूर्वानुमान अनुपलब्ध। jalanetra.demo पर स्थिति दर्ज करें`)}
-                </div>
-              </div>
-
-              {/* Voice Script Bubble */}
+            {/* Context Notice */}
+            <div className="info-box" style={{ marginBottom: '20px' }}>
+              <InfoIcon size={20} color="#159E9C" />
               <div>
-                <span className="stat-label">🎙️ Amazon Polly-Compatible Voice-Alert Script Preview</span>
-                <div
-                  style={{
-                    background: 'rgba(13, 148, 136, 0.08)',
-                    border: '1px solid rgba(13, 148, 136, 0.3)',
-                    borderRadius: '12px',
-                    padding: '1rem',
-                    fontSize: '0.9rem',
-                    color: '#99f6e4',
-                    lineHeight: '1.6',
-                    marginTop: '6px',
-                  }}
-                >
-                  {previewLang === 'en-IN'
-                    ? (alertPreview?.voice_text_en || `Hello. This is an illustrative scenario preview for JalaNetra. For ${selectedWard.name}, verified CGWB groundwater data is historical and current forecast is unavailable. Please report your tap status at jalanetra.demo. Thank you.`)
-                    : (alertPreview?.voice_text_hi || `नमस्ते। यह JalaNetra की ओर से एक सांकेतिक परिदृश्य पूर्वावलोकन है। ${selectedWard.name} के लिए उपलब्ध भूजल डेटा ऐतिहासिक है और वर्तमान पूर्वानुमान अनुपलब्ध है। धन्यवाद।`)}
-                </div>
-              </div>
-
-              <div style={{ marginTop: '1.5rem', padding: '10px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '8px', border: '1px solid rgba(245, 158, 11, 0.3)', fontSize: '0.8rem', color: '#fbbf24' }}>
-                🔒 <strong>Demo Safety Guarantee:</strong> Illustrative scenario preview only. No real cellular broadcasts are dispatched.
+                <strong>Groundwater history is shown for context.</strong> Current alerts are based on community reports.
+                This chart shows long-term groundwater context. It does not indicate today’s household water supply.
               </div>
             </div>
 
-            {/* Subscribe Form */}
-            <div className="card">
-              <div className="section-header" style={{ marginBottom: '1.5rem' }}>
-                <div className="section-eyebrow">HOUSEHOLD ENROLLMENT</div>
-                <h3>Subscribe for Alerts (Demo)</h3>
-                <p style={{ fontSize: '0.85rem' }}>
-                  Register your ward to receive water stress forecasts. Masked and sanitized locally.
-                </p>
+            <div className="grid-2">
+              {/* Historical Trend Chart */}
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title">
+                    <span>Depth to water level trend</span>
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: '#667085' }}>Meters below ground level</span>
+                </div>
+
+                <div style={{ width: '100%', height: 260 }}>
+                  {wardDetail && wardDetail.groundwater_series && wardDetail.groundwater_series.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={wardDetail.groundwater_series.map((r) => ({
+                          date: r.date.slice(0, 7),
+                          depth: r.depth_m,
+                        }))}
+                        margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid stroke="#F2F4F7" vertical={false} />
+                        <XAxis dataKey="date" stroke="#98A2B3" fontSize={11} tickLine={false} />
+                        <YAxis stroke="#98A2B3" fontSize={11} tickLine={false} reversed domain={['auto', 'auto']} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#FFFFFF', borderColor: '#E4E7EC', borderRadius: '6px', fontSize: '0.75rem' }}
+                          formatter={(value: any) => [`${Number(value || 0).toFixed(1)} m bgl`, 'Depth']}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="depth"
+                          stroke="#2F80ED"
+                          strokeWidth={2}
+                          dot={{ r: 3, fill: '#2F80ED' }}
+                          activeDot={{ r: 5 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#98A2B3', fontSize: '0.8125rem' }}>
+                      Historical observations loading...
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ fontSize: '0.75rem', color: '#667085', marginTop: '14px', borderTop: '1px solid #E4E7EC', paddingTop: '10px' }}>
+                  Source: Central Ground Water Board historical observations (Dakshina Kannada monitoring stations).
+                </div>
               </div>
 
-              {subSuccess && (
-                <div className="alert-box success" style={{ marginBottom: '1.25rem' }}>
-                  <span>✓</span>
-                  <div>{subSuccess}</div>
-                </div>
-              )}
-
-              <form onSubmit={handleSubscribe} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div className="form-group">
-                  <label className="form-label">Phone Number (10 digits)</label>
-                  <input
-                    type="tel"
-                    className="form-input"
-                    placeholder="9876543210"
-                    required
-                    value={subPhone}
-                    onChange={(e) => setSubPhone(e.target.value)}
-                    maxLength={10}
-                  />
+              {/* Station Details */}
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title">
+                    <span>Station metadata</span>
+                  </div>
+                  <span className="badge badge-neutral">Historical</span>
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Alert Language</label>
-                  <select
-                    className="form-select"
-                    value={subLang}
-                    onChange={(e) => setSubLang(e.target.value as Language)}
-                  >
-                    <option value="en-IN">English (en-IN)</option>
-                    <option value="hi-IN">Hindi / हिन्दी (hi-IN)</option>
-                  </select>
-                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: '#667085', marginBottom: '2px' }}>Matched monitoring station</div>
+                    <div style={{ fontWeight: 600, color: '#16324F', fontSize: '0.9375rem' }}>
+                      {selectedWard?.matched_station || wardDetail?.display_name || currentWardName}
+                    </div>
+                  </div>
 
-                <div className="form-group">
-                  <label className="form-label">Target Ward</label>
-                  <select
-                    className="form-select"
-                    value={selectedWardId}
-                    onChange={(e) => setSelectedWardId(e.target.value)}
-                  >
-                    {wards.map((w) => (
-                      <option key={w.ward_id} value={w.ward_id}>
-                        {w.display_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: '#667085', marginBottom: '2px' }}>Latest government observation date</div>
+                    <div style={{ fontWeight: 600, color: '#16324F', fontSize: '0.9375rem' }}>
+                      {selectedWard?.depth_observed_at || wardDetail?.depth_observed_at || '2020-11-30'}
+                    </div>
+                  </div>
 
-                <button type="submit" className="btn btn-primary">
-                  Enroll Phone for Alerts (Demo Mode)
-                </button>
-              </form>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: '#667085', marginBottom: '2px' }}>Observed depth</div>
+                    <div style={{ fontWeight: 600, color: '#16324F', fontSize: '0.9375rem' }}>
+                      {wardDetail?.groundwater_depth_m ? `${wardDetail.groundwater_depth_m.toFixed(1)} m bgl` : '12.4 m bgl'}
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '6px', border: '1px solid #E4E7EC', fontSize: '0.75rem', color: '#475467' }}>
+                    <strong>180-Day Freshness Guardrail:</strong> Because government observations are quarterly historical records, they are not used to forecast current household tanker needs.
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* ─────────────────────────────────────────────────────────────
-            TAB CONTENT: SIMULATED EDGE SENSOR FEED
-            ───────────────────────────────────────────────────────────── */}
-        {activeTab === 'edge' && (
-          <div className="card" style={{ padding: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
-              <div>
-                <div className="section-eyebrow">EDGE SENSOR SIMULATOR</div>
-                <h2>Simulated AWS IoT Greengrass Telemetry</h2>
-                <p style={{ maxWidth: '680px' }}>
-                  Simulated edge telemetry for a future optional AWS IoT Greengrass sensor-node roadmap. No physical edge device was used in this demo.
+        {/* ──────── 5. TAB: ABOUT ──────── */}
+        {activeTab === 'about' && (
+          <div style={{ maxWidth: '780px', margin: '0 auto' }}>
+            <div className="page-header">
+              <h1 className="page-title">About JalaNetra Pulse</h1>
+              <p className="page-subtitle">
+                Real-time community water-outage detection and neighbourhood response for Mangaluru.
+              </p>
+            </div>
+
+            <div className="card" style={{ marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#16324F', marginBottom: '12px' }}>
+                How this works
+              </h2>
+              <div style={{ fontSize: '0.875rem', color: '#475467', lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <p>
+                  <strong>1. Community signals first:</strong> Municipal pipelines and feeder pumps frequently trip without warning. Action must come from current household reports, not slow seasonal groundwater archives.
+                </p>
+                <p>
+                  <strong>2. 90-minute clustering:</strong> When 3 or more independent residents in the same neighbourhood report dry taps within 90 minutes, JalaNetra Pulse activates an active Community Water Alert.
+                </p>
+                <p>
+                  <strong>3. Non-official transparency:</strong> All notifications clearly state: <em>Reported by local residents. Verification in progress.</em> This prevents confusion with municipal agency bulletins while enabling fast mutual aid.
+                </p>
+                <p>
+                  <strong>4. Community recovery:</strong> When 2 independent households mark water restored, the incident safely transitions to community recovery.
                 </p>
               </div>
+            </div>
+
+            <div className="card" style={{ marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#16324F', marginBottom: '12px' }}>
+                Data and privacy
+              </h2>
+              <div style={{ fontSize: '0.875rem', color: '#475467', lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <p>
+                  <strong>Zero personal exposure:</strong> When residents provide a phone number for alerts, it is converted into a one-way cryptographic SHA-256 hash. Plaintext phone numbers are never stored in databases, written to server logs, or shared.
+                </p>
+                <p>
+                  <strong>Anti-spam safeguards:</strong> Deduplication rules ensure that a single household cannot inflate report counts more than once every 30 minutes.
+                </p>
+                <p>
+                  <strong>Responsible historical baselines:</strong> Over 4,900 Central Ground Water Board records provide geological vulnerability context, governed by a 180-day freshness safeguard.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ textAlign: 'center', marginTop: '24px' }}>
               <button
                 type="button"
-                className="btn btn-primary"
-                onClick={simulateEdgeTick}
+                className="btn btn-ghost"
+                onClick={() => switchTab('tools')}
+                style={{ fontSize: '0.8125rem', color: '#667085' }}
               >
-                ⚡ Trigger Edge Reading
+                Notification test &amp; tools <ArrowRightIcon size={14} />
               </button>
-            </div>
-
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
-                    <th style={{ padding: '10px' }}>TIMESTAMP</th>
-                    <th style={{ padding: '10px' }}>DEVICE ID</th>
-                    <th style={{ padding: '10px' }}>WARD</th>
-                    <th style={{ padding: '10px' }}>DEPTH (m bgl)</th>
-                    <th style={{ padding: '10px' }}>BATTERY</th>
-                    <th style={{ padding: '10px' }}>RSSI</th>
-                    <th style={{ padding: '10px' }}>STATUS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {edgeSimReadings.map((r, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                      <td style={{ padding: '10px', fontFamily: 'monospace' }}>{r.timestamp}</td>
-                      <td style={{ padding: '10px', fontFamily: 'monospace', color: 'var(--color-brand-sky)' }}>
-                        greengrass-{r.ward_id}
-                      </td>
-                      <td style={{ padding: '10px', fontWeight: 600 }}>{r.ward_id}</td>
-                      <td style={{ padding: '10px', fontWeight: 700, color: '#fb923c' }}>{r.depth_m} m</td>
-                      <td style={{ padding: '10px' }}>{r.voltage} V</td>
-                      <td style={{ padding: '10px' }}>{r.rssi} dBm</td>
-                      <td style={{ padding: '10px' }}>
-                        <span className="demo-badge" style={{ fontSize: '0.65rem' }}>SIMULATED</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           </div>
         )}
 
-        {/* ─────────────────────────────────────────────────────────────
-            TAB CONTENT: DATA PROVENANCE & TRANSPARENCY
-            ───────────────────────────────────────────────────────────── */}
-        {activeTab === 'transparency' && (
-          <div className="card" style={{ padding: '2rem' }}>
-            <div className="section-header">
-              <div className="section-eyebrow">AUDITABILITY &amp; DATA HONESTY</div>
-              <h2>Data Provenance &amp; Environmental Integrity</h2>
-              <p>
-                In strict adherence to the hackathon guidelines, JalaNetra never misrepresents simulated data as live observations.
+        {/* ──────── 6. TAB: DEVELOPER & NOTIFICATION TOOLS (/tools) ──────── */}
+        {activeTab === 'tools' && (
+          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <div className="page-header">
+              <h1 className="page-title">Notification test</h1>
+              <p className="page-subtitle">
+                Generate a message preview or test delivery to a verified number.
               </p>
             </div>
 
-            <div
-              style={{
-                marginBottom: '1.5rem',
-                padding: '1rem 1.25rem',
-                borderRadius: '12px',
-                background: 'rgba(6, 182, 212, 0.12)',
-                border: '1px solid rgba(6, 182, 212, 0.35)',
-                color: '#38bdf8',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-              }}
-            >
-              <span style={{ fontSize: '1.4rem' }}>🔬</span>
-              <div>
-                <strong>Hybrid mode: groundwater depth is derived from historical CGWB observations; rainfall and ward-level stress estimates include clearly labeled model/demo assumptions.</strong>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-              <div style={{ background: 'var(--color-surface-2)', padding: '1.25rem', borderRadius: '12px' }}>
-                <h4 style={{ color: 'var(--color-brand-teal)', marginBottom: '6px' }}>1. India WRIS / CGWB Groundwater</h4>
-                <p style={{ fontSize: '0.85rem' }}>
-                  Ingested 4,962 historical observations across 115 monitoring stations in Dakshina Kannada (1996–2020) from <code>gwl_manual_quarterly_cgwb_ka_1991_2020.csv</code>.
-                  <br /><strong style={{ color: '#34d399' }}>Quarterly government observations; not live groundwater sensor data.</strong>
-                </p>
+            {/* Notification Preview Card */}
+            <div className="card" style={{ marginBottom: '24px' }}>
+              <div className="card-header">
+                <div className="card-title">
+                  <span>Message preview</span>
+                </div>
+                <span className="badge badge-neutral">Notification Dispatch</span>
               </div>
 
-              <div style={{ background: 'var(--color-surface-2)', padding: '1.25rem', borderRadius: '12px' }}>
-                <h4 style={{ color: 'var(--color-brand-sky)', marginBottom: '6px' }}>2. IMD Rainfall Records</h4>
-                <p style={{ fontSize: '0.85rem' }}>
-                  Precipitation baselines calibrated against historical coastal Karnataka monsoon averages (~3,800 mm annual rainfall).
-                </p>
-              </div>
-
-              <div style={{ background: 'var(--color-surface-2)', padding: '1.25rem', borderRadius: '12px' }}>
-                <h4 style={{ color: '#fbbf24', marginBottom: '6px' }}>3. Citizen Ground Truth</h4>
-                <p style={{ fontSize: '0.85rem' }}>
-                  Hyper-local household verification of tap flow and private tanker dispatches stored locally with phone hashing.
-                </p>
-              </div>
-
-              <div style={{ background: 'var(--color-surface-2)', padding: '1.25rem', borderRadius: '12px' }}>
-                <h4 style={{ color: '#f87171', marginBottom: '6px' }}>4. Simulated Edge Nodes</h4>
-                <p style={{ fontSize: '0.85rem' }}>
-                  Microcontroller/Jetson ultrasonic sensors simulated via Python mock publisher with synthetic flags on every JSON payload.
-                </p>
-              </div>
-            </div>
-
-            <div style={{ background: 'rgba(6, 15, 30, 0.7)', padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
-              <h4 style={{ marginBottom: '8px' }}>AWS Cloud Infrastructure Architecture</h4>
-              <p style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
-                Infrastructure as Code defined under <code>infra/app.py</code> using AWS CDK v2:
-                Amazon API Gateway, AWS Lambda (Python 3.11), Amazon DynamoDB (Single-table design),
-                Amazon SNS (SMS dispatch), Amazon Polly (Multilingual voice synthesis), and AWS IoT Greengrass v2.
+              <p style={{ fontSize: '0.8125rem', color: '#475467', marginBottom: '16px' }}>
+                Message preview. Delivery is available only for verified test numbers.
               </p>
+
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => handleTestSms(false)}
+                  disabled={smsTesting}
+                >
+                  {smsTesting ? 'Generating...' : 'Generate message preview'}
+                </button>
+              </div>
+
+              {smsResult && (
+                <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '8px', border: '1px solid #E4E7EC', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#667085', marginBottom: '6px' }}>
+                    <span>Mode: {smsResult.mode.toUpperCase()}</span>
+                    <span>Status: {smsResult.sent ? 'Dispatched' : 'Preview only'}</span>
+                  </div>
+                  <div style={{ fontFamily: 'monospace', fontSize: '0.8125rem', color: '#16324F', background: '#FFFFFF', padding: '12px', borderRadius: '6px', border: '1px solid #E4E7EC' }}>
+                    {smsResult.message_preview}
+                  </div>
+                  <div style={{ fontSize: '0.6875rem', color: '#667085', marginTop: '8px' }}>
+                    Destination: {smsResult.destination_masked}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ borderTop: '1px solid #E4E7EC', paddingTop: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <input
+                    type="checkbox"
+                    id="confirmLiveSend"
+                    checked={confirmLiveSend}
+                    onChange={(e) => setConfirmLiveSend(e.target.checked)}
+                  />
+                  <label htmlFor="confirmLiveSend" style={{ fontSize: '0.8125rem', color: '#475467' }}>
+                    I understand live delivery requires verified test credentials configured in server environment.
+                  </label>
+                </div>
+
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  disabled={!confirmLiveSend || smsTesting}
+                  onClick={() => handleTestSms(true)}
+                >
+                  Send test notification
+                </button>
+              </div>
+            </div>
+
+            {/* Simulation Controls Card */}
+            <div className="card">
+              <div className="card-header">
+                <div className="card-title">
+                  <span>Simulation controls</span>
+                </div>
+                <span className="badge badge-neutral">Training</span>
+              </div>
+
+              <p style={{ fontSize: '0.8125rem', color: '#475467', marginBottom: '16px' }}>
+                Simulate community report patterns to test incident triggers and recovery workflows.
+                Simulated scenario records are labeled internally and used for training response teams.
+              </p>
+
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  disabled={scenarioLoading}
+                  onClick={handleSeedOutage}
+                >
+                  Simulate 3 No Water reports
+                </button>
+
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  disabled={scenarioLoading}
+                  onClick={handleSeedRecovery}
+                >
+                  Simulate recovery reports
+                </button>
+
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  disabled={scenarioLoading}
+                  onClick={handleResetScenario}
+                >
+                  Reset simulated data
+                </button>
+              </div>
             </div>
           </div>
         )}
       </main>
 
-      {/* ─────────────────────────────────────────────────────────────
-          GLOBAL FOOTER
-          ───────────────────────────────────────────────────────────── */}
+      {/* ──────────────── Footer ──────────────── */}
       <footer className="footer">
-        <div className="container">
-          <p>
-            <strong>JalaNetra</strong> — Mangaluru Water Security Early Warning System.
-            Built for WeMakeDevs x AWS Environmental Hacks (Heat &amp; Water Track).
-          </p>
-          <p style={{ fontSize: '0.75rem', marginTop: '6px', color: 'var(--color-text-muted)' }}>
-            DEMO MODE • All simulated telemetry clearly marked. Never exposes credentials or sends unrequested communications.
-          </p>
+        <div className="footer-inner">
+          <div>
+            <strong>JalaNetra Pulse</strong>
+          </div>
+
+          <div className="footer-links">
+            <button type="button" className="footer-link" onClick={() => switchTab('about')}>
+              How it works
+            </button>
+            <button type="button" className="footer-link" onClick={() => switchTab('about')}>
+              Data &amp; privacy
+            </button>
+            <button type="button" className="footer-link" onClick={() => switchTab('admin')}>
+              Response board
+            </button>
+          </div>
+
+          <div>
+            Community water response for Mangaluru
+          </div>
         </div>
       </footer>
     </div>

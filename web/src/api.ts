@@ -303,3 +303,137 @@ export async function fetchAlertPreview(wardId: string, language: Language): Pro
 export async function fetchHealth(): Promise<{ status: string; data_mode: string }> {
   return apiFetch('/health');
 }
+
+// ────────────────────────────────────────────
+// JalaNetra Pulse Types & API Functions
+// ────────────────────────────────────────────
+
+export type PulseStatus = 'available' | 'low' | 'dry' | 'restored';
+export type PulseAlertStatus = 'monitoring' | 'active' | 'recovery';
+export type PulseSeverity = 'watch' | 'high' | 'critical';
+
+export interface PulseCommunityAlert {
+  id: number;
+  ward_id: string;
+  status: PulseAlertStatus;
+  severity: PulseSeverity;
+  independent_report_count: number;
+  first_report_at: string;
+  latest_report_at: string;
+  confidence: string;
+  trigger_reason: string;
+  simulation: boolean;
+  recommended_actions: string[];
+  disclaimer: string;
+}
+
+export interface PulseWardSummary {
+  ward_id: string;
+  name: string;
+  display_name: string;
+  latitude: number;
+  longitude: number;
+  active_alert: PulseCommunityAlert | null;
+  reports_90m: number;
+  independent_reporters_90m: number;
+  breakdown: Record<PulseStatus, number>;
+  historical_vulnerability: {
+    groundwater_depth_m: number | null;
+    depth_observed_at: string | null;
+    matched_station: string | null;
+    risk_level: string;
+  };
+}
+
+export interface PulseSummaryResponse {
+  title: string;
+  active_alert_count: number;
+  active_alerts: PulseCommunityAlert[];
+  total_reports_90m: number;
+  total_reports_24h: number;
+  wards_monitored: PulseWardSummary[];
+  impact_metrics: {
+    active_outages: number;
+    in_recovery: number;
+    time_to_detect_minutes: number;
+    monitoring_window_minutes: number;
+    dedup_window_minutes: number;
+    outage_threshold_independent_reports: number;
+  };
+  disclaimer: string;
+  updated_at: string;
+}
+
+export interface PulseWardDetailResponse {
+  ward_id: string;
+  active_alert: PulseCommunityAlert | null;
+  reports_last_90m: number;
+  independent_reporters_count: number;
+  status_breakdown: Record<PulseStatus, number>;
+  recent_reports: Array<{
+    id: number;
+    status: PulseStatus;
+    reporter_key_hash: string;
+    created_at: string;
+    source: string;
+    simulation: boolean;
+  }>;
+  timeline: Array<{
+    type: string;
+    timestamp: string;
+    status: string;
+    label: string;
+    severity?: string;
+    simulation?: boolean;
+  }>;
+  recommended_actions: string[];
+  disclaimer: string;
+}
+
+export interface PulseSmsTestResponse {
+  sent: boolean;
+  mode: string;
+  reason?: string;
+  destination_masked: string | null;
+  message_preview: string;
+  disclaimer?: string;
+  message_id?: string;
+  note?: string;
+  aws_region?: string;
+}
+
+export async function fetchPulseSummary(): Promise<PulseSummaryResponse> {
+  return apiFetch('/api/pulse/summary');
+}
+
+export async function fetchWardPulse(wardId: string): Promise<PulseWardDetailResponse> {
+  return apiFetch(`/api/pulse/wards/${wardId}`);
+}
+
+export async function submitPulseReport(data: {
+  ward_id: string;
+  status: PulseStatus;
+  reporter_key?: string;
+  phone?: string;
+}): Promise<any> {
+  return apiFetch('/api/pulse/reports', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export async function seedPulseOutage(wardId: string = 'dk-kodialbail'): Promise<any> {
+  return apiFetch('/api/pulse/scenario/seed-outage', { method: 'POST', body: JSON.stringify({ ward_id: wardId }) });
+}
+
+export async function seedPulseRecovery(wardId: string = 'dk-kodialbail'): Promise<any> {
+  return apiFetch('/api/pulse/scenario/seed-recovery', { method: 'POST', body: JSON.stringify({ ward_id: wardId }) });
+}
+
+export async function resetPulseScenario(): Promise<any> {
+  return apiFetch('/api/pulse/scenario/reset', { method: 'POST', body: JSON.stringify({}) });
+}
+
+export async function testPulseSms(wardId: string, confirmTestSend: boolean = false): Promise<PulseSmsTestResponse> {
+  return apiFetch('/api/pulse/sms/test', {
+    method: 'POST',
+    body: JSON.stringify({ ward_id: wardId, confirm_test_send: confirmTestSend }),
+  });
+}
