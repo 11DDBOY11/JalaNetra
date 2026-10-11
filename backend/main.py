@@ -395,6 +395,174 @@ def data_quality():
     return _demo_envelope({"quality_report": _quality_report})
 
 
+from backend import db, pulse
+
+
+class PulseReportCreate(BaseModel):
+    ward_id: str
+    status: str
+    reporter_key: Optional[str] = None
+    phone: Optional[str] = None
+
+    @field_validator("status")
+    @classmethod
+    def validate_pulse_status(cls, v: str) -> str:
+        valid = {"available", "low", "dry", "restored"}
+        if v not in valid:
+            raise ValueError(f"status must be one of {valid}")
+        return v
+
+
+class PulseResolveReport(BaseModel):
+    reporter_key: Optional[str] = None
+    note: Optional[str] = None
+
+
+class PulseScenarioSeed(BaseModel):
+    ward_id: str = "dk-kodialbail"
+
+
+class PulseSmsTestRequest(BaseModel):
+    ward_id: str = "dk-kodialbail"
+    confirm_test_send: bool = False
+
+
+# ---------------------------------------------------------------------------
+# JalaNetra Pulse Endpoints
+# ---------------------------------------------------------------------------
+
+@app.get("/api/pulse/summary", tags=["pulse"])
+def pulse_summary():
+    """Real-time community water-outage detection summary across all wards."""
+    return pulse.get_pulse_summary(_ward_states)
+
+
+@app.get("/api/pulse/wards/{ward_id}", tags=["pulse"])
+def pulse_ward_detail(ward_id: str):
+    """Real-time pulse and incident timeline for a specific ward."""
+    _get_ward_state(ward_id)  # validate ward exists
+    return pulse.get_ward_pulse(ward_id)
+
+
+@app.post("/api/pulse/reports", tags=["pulse"])
+def pulse_submit_report(req: PulseReportCreate, request: Request):
+    """
+    Submit a real-time water status report.
+    Enforces 30-minute deduplication and triggers 90-minute clustering engine.
+    """
+    # Use client provided reporter_key, or generate from request header/IP
+    client_key = req.reporter_key or request.headers.get("x-reporter-key") or request.client.host if request.client else None
+    try:
+        res = pulse.add_water_report(
+            ward_id=req.ward_id,
+            status=req.status,
+            reporter_key=client_key,
+            phone=req.phone,
+            source="live_user",
+            simulation=False,
+        )
+        return res
+    except ValueError as val_err:
+        raise HTTPException(status_code=429, detail=str(val_err))
+
+
+@app.get("/api/pulse/alerts", tags=["pulse"])
+def pulse_list_alerts():
+    """List active and recovery community water alerts."""
+    with db.get_db() as conn:
+        rows = conn.execute(
+            """SELECT * FROM community_alerts
+               WHERE status IN ('active', 'recovery')
+               ORDER BY latest_report_at DESC"""
+        ).fetchall()
+    alerts = []
+    for r in rows:
+        d = dict(r)
+        d["simulation"] = bool(d["simulation"])
+        d["recommended_actions"] = pulse.get_recommended_actions(d["status"])
+        d["disclaimer"] = pulse.DISCLAIMER
+        alerts.append(d)
+    return {"alerts": alerts, "count": len(alerts), "disclaimer": pulse.DISCLAIMER}
+
+
+@app.get("/api/pulse/alerts/{alert_id}", tags=["pulse"])
+def pulse_get_alert(alert_id: int):
+    """Get specific alert details and recent reports."""
+    with db.get_db() as conn:
+        row = conn.execute("SELECT * FROM community_alerts WHERE id = ?", (alert_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Alert not found")
+        d = dict(row)
+        d["simulation"] = bool(d["simulation"])
+        d["recommended_actions"] = pulse.get_recommended_actions(d["status"])
+        d["disclaimer"] = pulse.DISCLAIMER
+
+        reports = conn.execute(
+            """SELECT id, status, reporter_key_hash, created_at, source, simulation
+               FROM water_reports
+               WHERE ward_id = ?
+               ORDER BY created_at DESC LIMIT 20""",
+            (d["ward_id"],),
+        ).fetchall()
+        d["associated_reports"] = [dict(r) for r in reports]
+        return d
+
+
+@app.post("/api/pulse/alerts/{alert_id}/resolve-report", tags=["pulse"])
+def pulse_resolve_report(alert_id: int, req: PulseResolveReport, request: Request):
+    """Submit a recovery report (water restored) for an open alert incident."""
+    with db.get_db() as conn:
+        row = conn.execute("SELECT * FROM community_alerts WHERE id = ?", (alert_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Alert not found")
+        ward_id = row["ward_id"]
+
+    client_key = req.reporter_key or request.headers.get("x-reporter-key") or "resolver"
+    try:
+        res = pulse.add_water_report(
+            ward_id=ward_id,
+            status="restored",
+            reporter_key=client_key,
+            source="live_user",
+            simulation=False,
+        )
+        return {"status": "recorded", "result": res}
+    except ValueError as val_err:
+        raise HTTPException(status_code=429, detail=str(val_err))
+
+
+@app.post("/api/pulse/scenario/seed-outage", tags=["pulse-demo"])
+def pulse_seed_outage(req: PulseScenarioSeed):
+    """Demo scenario: Seed 3 independent 'no water' reports to activate Community Alert."""
+    ws = _get_ward_state(req.ward_id)
+    return pulse.seed_scenario_outage(ws["ward_id"])
+
+
+@app.post("/api/pulse/scenario/seed-recovery", tags=["pulse-demo"])
+def pulse_seed_recovery(req: PulseScenarioSeed):
+    """Demo scenario: Seed 2 independent 'restored' reports to show Community Recovery."""
+    ws = _get_ward_state(req.ward_id)
+    return pulse.seed_scenario_recovery(ws["ward_id"])
+
+
+@app.post("/api/pulse/scenario/reset", tags=["pulse-demo"])
+def pulse_reset_scenario():
+    """Reset all simulated/demo pulse records back to clean state."""
+    return pulse.reset_scenario_data()
+
+
+@app.post("/api/pulse/sms/test", tags=["pulse-sms"])
+def pulse_test_sms(req: PulseSmsTestRequest):
+    """
+    Test transactional SMS dispatch.
+    Safe by default: returns payload preview if SMS_LIVE_MODE is false.
+    Only dispatches real SNS SMS if SMS_LIVE_MODE=true, confirm_test_send=true,
+    and SMS_TEST_PHONE is configured.
+    """
+    ws = _get_ward_state(req.ward_id)
+    return pulse.test_sms_dispatch(ws["display_name"], confirm_test_send=req.confirm_test_send)
+
+
 # ---------------------------------------------------------------------------
 # Error handlers
 # ---------------------------------------------------------------------------

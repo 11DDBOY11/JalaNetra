@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-11T05:54:41.418041Z",
+  "generated_at": "2026-10-11T16:33:24.845845Z",
   "data_mode": "hybrid",
   "synthetic": false,
   "groundwater_source_mode": "real_historical",
@@ -33,7 +33,7 @@
       "rainfall_seasonal_baseline_7d_mm": 45.0,
       "rainfall_synthetic": true,
       "data_mode": "hybrid",
-      "last_updated": "2026-10-11T05:54:41.384596Z",
+      "last_updated": "2026-10-11T16:33:24.794055Z",
       "groundwater_series": [
         {
           "date": "2005-01-05",
@@ -432,7 +432,7 @@
       "rainfall_seasonal_baseline_7d_mm": 45.0,
       "rainfall_synthetic": true,
       "data_mode": "hybrid",
-      "last_updated": "2026-10-11T05:54:41.384596Z",
+      "last_updated": "2026-10-11T16:33:24.810820Z",
       "groundwater_series": [
         {
           "date": "2005-01-05",
@@ -836,7 +836,7 @@
       "rainfall_seasonal_baseline_7d_mm": 45.0,
       "rainfall_synthetic": true,
       "data_mode": "hybrid",
-      "last_updated": "2026-10-11T05:54:41.401773Z",
+      "last_updated": "2026-10-11T16:33:24.819196Z",
       "groundwater_series": [
         {
           "date": "2013-01-05",
@@ -1120,7 +1120,7 @@
       "rainfall_seasonal_baseline_7d_mm": 45.0,
       "rainfall_synthetic": true,
       "data_mode": "hybrid",
-      "last_updated": "2026-10-11T05:54:41.401773Z",
+      "last_updated": "2026-10-11T16:33:24.827386Z",
       "groundwater_series": [
         {
           "date": "1996-01-05",
@@ -1729,7 +1729,7 @@
       "rainfall_seasonal_baseline_7d_mm": 45.0,
       "rainfall_synthetic": true,
       "data_mode": "hybrid",
-      "last_updated": "2026-10-11T05:54:41.418041Z",
+      "last_updated": "2026-10-11T16:33:24.843456Z",
       "groundwater_series": [
         {
           "date": "2013-01-05",
@@ -1987,7 +1987,7 @@
     }
   ],
   "quality_report": {
-    "generated_at": "2026-10-11T05:54:41.370220Z",
+    "generated_at": "2026-10-11T16:33:24.768641Z",
     "data_mode": "hybrid",
     "synthetic": false,
     "groundwater_source_mode": "real_historical",

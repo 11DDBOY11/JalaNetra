@@ -79,6 +79,46 @@ def init_db() -> None:
                 state_json TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS water_reports (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ward_id TEXT NOT NULL,
+                status TEXT NOT NULL CHECK(status IN ('available', 'low', 'dry', 'restored')),
+                reporter_key_hash TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                phone_hash TEXT,
+                source TEXT NOT NULL CHECK(source IN ('live_user', 'scenario_demo')),
+                simulation INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_water_reports_ward_time ON water_reports(ward_id, created_at);
+            CREATE INDEX IF NOT EXISTS idx_water_reports_reporter ON water_reports(reporter_key_hash, created_at);
+
+            CREATE TABLE IF NOT EXISTS community_alerts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ward_id TEXT NOT NULL,
+                status TEXT NOT NULL CHECK(status IN ('monitoring', 'active', 'recovery')),
+                severity TEXT NOT NULL CHECK(severity IN ('watch', 'high', 'critical')),
+                independent_report_count INTEGER NOT NULL DEFAULT 0,
+                first_report_at TEXT NOT NULL,
+                latest_report_at TEXT NOT NULL,
+                confidence TEXT NOT NULL,
+                trigger_reason TEXT NOT NULL,
+                simulation INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_comm_alerts_ward ON community_alerts(ward_id, status);
+
+            CREATE TABLE IF NOT EXISTS subscriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ward_id TEXT NOT NULL,
+                phone_hash TEXT NOT NULL,
+                notification_channel TEXT NOT NULL CHECK(notification_channel IN ('in_app', 'sms')),
+                sms_verified INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_subscriptions_ward ON subscriptions(ward_id);
         """)
     logger.info("Database initialized at %s", DB_PATH)
 
