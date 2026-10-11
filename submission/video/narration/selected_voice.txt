@@ -1,0 +1,20 @@
+Voice Selection Report: JalaNetra Hackathon Demo Video
+======================================================
+
+Selected Voice: en-IN-NeerjaNeural (Microsoft Edge Neural TTS)
+Selected Rate: +5%
+Selected Pitch: -2Hz
+Selected Volume: +0%
+
+Evaluation & Selection Rationale:
+- Evaluated voice candidates:
+  1. en-IN-NeerjaNeural (voice_test_1.mp3) - Selected
+  2. en-IN-PrabhatNeural (voice_test_2.mp3)
+  3. en-IN-NeerjaExpressiveNeural (voice_test_3.mp3)
+- en-IN-NeerjaNeural delivers a calm, authoritative, authentic Indian English cadence that aligns perfectly with Mangaluru local water context.
+- Avoids the robotic artifacting of legacy Windows SAPI while steering clear of overly dramatic commercial/corporate voice tones.
+- Pristine clarity with natural phrasing, gentle breath pauses, and neutral pronunciation of Indian geographical names (Mangaluru, Dakshina Kannada, Western Ghats).
+
+Truthfulness & Provenance Confirmation:
+- Voice Generation Engine: Microsoft Edge Neural TTS (edge-tts Python library).
+- Amazon Polly Confirmation: This narration is NOT produced by Amazon Polly, AWS Polly, or any deployed cloud service. No AWS Polly API was called and no cloud resources were deployed for this demonstration audio.

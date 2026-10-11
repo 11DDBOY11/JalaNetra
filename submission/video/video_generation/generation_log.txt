@@ -1,0 +1,113 @@
+[2026-10-11 11:39:41] ============================================================
+[2026-10-11 11:39:41] Starting JalaNetra Demo Video Assembly
+[2026-10-11 11:39:41] ============================================================
+[2026-10-11 11:39:41] Building master audio track (narration + ambient bed)...
+[2026-10-11 11:39:41] Inserted narration scene_1.wav at 0.5s (11.8s)
+[2026-10-11 11:39:41] Inserted narration scene_2.wav at 13.5s (17.3s)
+[2026-10-11 11:39:41] Inserted narration scene_3.wav at 31.5s (15.6s)
+[2026-10-11 11:39:41] Inserted narration scene_4.wav at 48.5s (12.1s)
+[2026-10-11 11:39:41] Inserted narration scene_5.wav at 62.5s (13.7s)
+[2026-10-11 11:39:41] Inserted narration scene_6.wav at 77.5s (18.3s)
+[2026-10-11 11:39:41] Inserted narration scene_7.wav at 97.0s (11.4s)
+[2026-10-11 11:39:41] Master audio track generated: E:\BHARATBUILDS\BB2\JalaNetra\submission\video\narration\narration_master.wav (110.0s)
+[2026-10-11 11:39:41] Preloading 8 visual scene images...
+[2026-10-11 11:39:41] Successfully loaded 8 scene assets.
+[2026-10-11 11:39:41] Launching FFmpeg sub-process for H.264/AAC MP4 output...
+[2026-10-11 11:39:41] Rendering 3300 frames (110.0s at 30fps)...
+[2026-10-11 11:39:41] Progress: 0% (1/3300 frames rendered)
+[2026-10-11 11:39:48] Progress: 10% (331/3300 frames rendered)
+[2026-10-11 11:39:57] Progress: 20% (661/3300 frames rendered)
+[2026-10-11 11:40:04] Progress: 30% (991/3300 frames rendered)
+[2026-10-11 11:40:12] Progress: 40% (1321/3300 frames rendered)
+[2026-10-11 11:40:22] Progress: 50% (1651/3300 frames rendered)
+[2026-10-11 11:40:29] Progress: 60% (1981/3300 frames rendered)
+[2026-10-11 11:40:38] Progress: 70% (2311/3300 frames rendered)
+[2026-10-11 11:40:49] Progress: 80% (2641/3300 frames rendered)
+[2026-10-11 11:40:58] Progress: 90% (2971/3300 frames rendered)
+[2026-10-11 11:41:07] Progress: 100% (3300/3300 frames rendered)
+[2026-10-11 11:41:09] Video assembly finished successfully!
+[2026-10-11 11:41:09] Output Path: E:\BHARATBUILDS\BB2\JalaNetra\submission\video\jalanetra_demo.mp4
+[2026-10-11 11:41:09] File Size: 8.50 MB
+[2026-10-11 11:41:09] Target Duration: 110.0 seconds
+[2026-10-11 11:41:11] FFprobe metadata:
+duration=110.000000
+size=8917117
+bit_rate=648517
+[2026-10-11 11:47:05] ============================================================
+[2026-10-11 11:47:05] Starting JalaNetra Neural Voice Demo Video Assembly
+[2026-10-11 11:47:05] ============================================================
+[2026-10-11 11:47:05] Preloading visual scene images...
+[2026-10-11 11:47:05] Successfully loaded 8 scene assets.
+[2026-10-11 11:47:05] Launching FFmpeg sub-process for H.264/AAC MP4 output (E:\BHARATBUILDS\BB2\JalaNetra\submission\video\jalanetra_demo.mp4)...
+[2026-10-11 11:47:05] Rendering 3150 frames (105.0s at 30fps)...
+[2026-10-11 11:47:05] Progress: 0% (1/3150 frames rendered)
+[2026-10-11 11:47:11] Progress: 10% (316/3150 frames rendered)
+[2026-10-11 11:47:20] Progress: 20% (631/3150 frames rendered)
+[2026-10-11 11:47:29] Progress: 30% (946/3150 frames rendered)
+[2026-10-11 11:47:38] Progress: 40% (1261/3150 frames rendered)
+[2026-10-11 11:47:45] Progress: 50% (1576/3150 frames rendered)
+[2026-10-11 11:47:54] Progress: 60% (1891/3150 frames rendered)
+[2026-10-11 11:48:03] Progress: 70% (2206/3150 frames rendered)
+[2026-10-11 11:48:12] Progress: 80% (2521/3150 frames rendered)
+[2026-10-11 11:48:21] Progress: 90% (2836/3150 frames rendered)
+[2026-10-11 11:48:28] Progress: 100% (3150/3150 frames rendered)
+[2026-10-11 11:48:31] Video assembly with Microsoft Edge Neural Voice finished successfully!
+[2026-10-11 11:48:31] Output Path: E:\BHARATBUILDS\BB2\JalaNetra\submission\video\jalanetra_demo.mp4
+[2026-10-11 11:48:31] File Size: 7.33 MB
+[2026-10-11 11:48:31] Target Duration: 105.0 seconds
+[2026-10-11 11:48:31] FFprobe metadata:
+duration=105.000000
+size=7686472
+bit_rate=585635
+[2026-10-11 12:20:02] ============================================================
+[2026-10-11 12:20:02] Starting JalaNetra Pulse Demo Video Assembly
+[2026-10-11 12:20:02] ============================================================
+[2026-10-11 12:20:02] Preloading visual scene images...
+[2026-10-11 12:20:02] Successfully loaded 8 scene assets.
+[2026-10-11 12:20:02] Launching FFmpeg sub-process for H.264/AAC MP4 output (E:\BHARATBUILDS\BB2\JalaNetra\submission\video\jalanetra_demo.mp4)...
+[2026-10-11 12:20:02] Rendering 3420 frames (114.0s at 30fps)...
+[2026-10-11 12:20:02] Progress: 0% (1/3420 frames rendered)
+[2026-10-11 12:20:11] Progress: 10% (343/3420 frames rendered)
+[2026-10-11 12:20:21] Progress: 20% (685/3420 frames rendered)
+[2026-10-11 12:20:32] Progress: 30% (1027/3420 frames rendered)
+[2026-10-11 12:20:45] Progress: 40% (1369/3420 frames rendered)
+[2026-10-11 12:20:57] Progress: 50% (1711/3420 frames rendered)
+[2026-10-11 12:21:09] Progress: 60% (2053/3420 frames rendered)
+[2026-10-11 12:21:21] Progress: 70% (2395/3420 frames rendered)
+[2026-10-11 12:21:34] Progress: 80% (2737/3420 frames rendered)
+[2026-10-11 12:21:46] Progress: 90% (3079/3420 frames rendered)
+[2026-10-11 12:21:57] Progress: 100% (3420/3420 frames rendered)
+[2026-10-11 12:21:59] Video assembly for JalaNetra Pulse finished successfully!
+[2026-10-11 12:21:59] Output Path: E:\BHARATBUILDS\BB2\JalaNetra\submission\video\jalanetra_demo.mp4
+[2026-10-11 12:21:59] File Size: 6.79 MB
+[2026-10-11 12:21:59] Target Duration: 114.0 seconds
+[2026-10-11 12:22:00] FFprobe metadata:
+duration=113.111995
+size=7121136
+bit_rate=503652
+[2026-10-11 22:12:50] ============================================================
+[2026-10-11 22:12:50] Starting JalaNetra Pulse Final Demo Video Assembly
+[2026-10-11 22:12:50] ============================================================
+[2026-10-11 22:12:50] Preloading visual scene images...
+[2026-10-11 22:12:50] Successfully loaded 8 scene assets.
+[2026-10-11 22:12:50] Launching FFmpeg sub-process for H.264/AAC MP4 output (E:\BHARATBUILDS\BB2\JalaNetra\submission\video\jalanetra_demo.mp4)...
+[2026-10-11 22:12:50] Rendering 4680 frames (156.0s at 30fps)...
+[2026-10-11 22:12:50] Progress: 0% (1/4680 frames rendered)
+[2026-10-11 22:13:04] Progress: 10% (469/4680 frames rendered)
+[2026-10-11 22:13:17] Progress: 20% (937/4680 frames rendered)
+[2026-10-11 22:13:27] Progress: 30% (1405/4680 frames rendered)
+[2026-10-11 22:13:34] Progress: 40% (1873/4680 frames rendered)
+[2026-10-11 22:13:46] Progress: 50% (2341/4680 frames rendered)
+[2026-10-11 22:13:58] Progress: 60% (2809/4680 frames rendered)
+[2026-10-11 22:14:13] Progress: 70% (3277/4680 frames rendered)
+[2026-10-11 22:14:27] Progress: 80% (3745/4680 frames rendered)
+[2026-10-11 22:14:40] Progress: 90% (4213/4680 frames rendered)
+[2026-10-11 22:14:55] Progress: 100% (4680/4680 frames rendered)
+[2026-10-11 22:14:57] Video assembly for JalaNetra Pulse finished successfully!
+[2026-10-11 22:14:57] Output Path: E:\BHARATBUILDS\BB2\JalaNetra\submission\video\jalanetra_demo.mp4
+[2026-10-11 22:14:57] File Size: 6.82 MB
+[2026-10-11 22:14:57] Target Duration: 156.0 seconds
+[2026-10-11 22:14:58] FFprobe metadata:
+duration=156.000000
+size=7151809
+bit_rate=366759

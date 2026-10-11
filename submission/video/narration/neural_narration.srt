@@ -1,0 +1,28 @@
+1
+00:00:01,000 --> 00:00:16,792
+JalaNetra Pulse helps Mangaluru communities respond faster when a neighbourhood experiences a water-supply interruption. A resident often cannot tell whether a dry tap is only a home-level issue or a wider local outage.
+
+2
+00:00:19,000 --> 00:00:30,256
+Residents can report water availability, low supply, or no water. Reports are grouped by ward and time, while personal details are protected.
+
+3
+00:00:39,000 --> 00:00:50,760
+When three independent residents in the same ward report no water within ninety minutes, JalaNetra Pulse detects a local pattern and creates a community water-issue incident.
+
+4
+00:01:06,000 --> 00:01:22,272
+The response board turns reports into a structured local workflow. Apartment associations, ward volunteers, and community responders can verify the interruption, coordinate water support, and record recovery updates.
+
+5
+00:01:27,823 --> 00:01:45,176
+Historical Central Ground Water Board observations provide long-term groundwater context for Dakshin Kannada. JalaNetra keeps this separate from current outage detection, so historical data is never presented as live water availability.
+
+6
+00:01:46,743 --> 00:02:18,256
+JalaNetra Pulse is designed as an AWS serverless system. Amazon API Gateway routes water reports to AWS Lambda. Amazon DynamoDB stores reports, incidents, and subscriptions. Amazon EventBridge evaluates alert patterns, Amazon SNS supports controlled transactional notifications, Amazon S3 stores historical data, and AWS Amplify hosts the public dashboard.
+
+7
+00:02:19,520 --> 00:02:35,480
+JalaNetra Pulse turns scattered household complaints into a shared community signal. It helps neighbourhoods recognize a water issue earlier, coordinate a response, and build a more reliable picture of local water stress.
+
