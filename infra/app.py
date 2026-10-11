@@ -60,7 +60,7 @@ class JalaNetraStack(Stack):
         )
 
         # -------------------------------------------------------------------
-        # DynamoDB Tables
+        # DynamoDB Tables — JalaNetra Pulse
         # -------------------------------------------------------------------
         # Ward state table
         ward_table = dynamodb.Table(
@@ -72,22 +72,33 @@ class JalaNetraStack(Stack):
             point_in_time_recovery=True,
         )
 
-        # Citizen reports table
-        reports_table = dynamodb.Table(
-            self, "CitizenReportsTable",
-            table_name="citizen_reports",
+        # Water reports table (JalaNetra Pulse Real-Time Ingestion)
+        water_reports_table = dynamodb.Table(
+            self, "WaterReportsTable",
+            table_name="water_reports",
             partition_key=dynamodb.Attribute(name="ward_id", type=dynamodb.AttributeType.STRING),
-            sort_key=dynamodb.Attribute(name="ts", type=dynamodb.AttributeType.STRING),
+            sort_key=dynamodb.Attribute(name="created_at", type=dynamodb.AttributeType.STRING),
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
             removal_policy=RemovalPolicy.RETAIN,
             time_to_live_attribute="ttl",
         )
 
+        # Community alerts table (JalaNetra Pulse Outage Clusters)
+        community_alerts_table = dynamodb.Table(
+            self, "CommunityAlertsTable",
+            table_name="community_alerts",
+            partition_key=dynamodb.Attribute(name="ward_id", type=dynamodb.AttributeType.STRING),
+            sort_key=dynamodb.Attribute(name="alert_id", type=dynamodb.AttributeType.STRING),
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
+            removal_policy=RemovalPolicy.RETAIN,
+        )
+
         # Alert subscriptions table
         subscriptions_table = dynamodb.Table(
             self, "AlertSubscriptionsTable",
-            table_name="alert_subscriptions",
-            partition_key=dynamodb.Attribute(name="phone_hash", type=dynamodb.AttributeType.STRING),
+            table_name="subscriptions",
+            partition_key=dynamodb.Attribute(name="ward_id", type=dynamodb.AttributeType.STRING),
+            sort_key=dynamodb.Attribute(name="phone_hash", type=dynamodb.AttributeType.STRING),
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
             removal_policy=RemovalPolicy.RETAIN,
         )
@@ -118,7 +129,8 @@ class JalaNetraStack(Stack):
 
         # Least-privilege DynamoDB access
         ward_table.grant_read_write_data(lambda_role)
-        reports_table.grant_read_write_data(lambda_role)
+        water_reports_table.grant_read_write_data(lambda_role)
+        community_alerts_table.grant_read_write_data(lambda_role)
         subscriptions_table.grant_read_write_data(lambda_role)
 
         # S3 read access
