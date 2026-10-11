@@ -43,3 +43,14 @@
   > **“Historical quarterly government groundwater observations; not live groundwater sensor data.”**
 - **Confidence Scoring:** Automatically degraded to `low` when observations are fewer than 2, older than 60 days, or when falling back to synthetic seasonal defaults.
 - **No Certainty Claims:** The system explicitly avoids definitive claims ("will definitely dry up") and instead produces transparent decision-support indicators to assist household preparedness.
+
+---
+
+## JalaNetra Pulse Outage Clustering Engine
+- **Model Type:** Spatial-Temporal Rolling Window Density Clusterer.
+- **Temporal Window:** 90 minutes.
+- **Deduplication:** Rate-limits single client identities to 1 report per 30 minutes per ward.
+- **Trigger Rule:** 3 or more independent household `dry` reports in the same ward.
+- **Alert Status:** Transitions to `active` with severity `high` (3–4 reports) or `critical` (5+ reports).
+- **Recovery Rule:** 2 or more independent `restored` or `available` reports transition the incident to `recovery`.
+- **Mandatory Output Label:** *“Community-reported issue — not an official municipal confirmation.”*

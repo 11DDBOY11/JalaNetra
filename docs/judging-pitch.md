@@ -1,37 +1,47 @@
-# JalaNetra: Judging Pitch & Track Alignment
+# JalaNetra Pulse: Judging Pitch & Track Alignment
 **Hackathon:** WeMakeDevs x AWS Environmental Hacks  
-**Track:** Heat & Water
+**Track:** Heat & Water  
+**Product Name:** JalaNetra Pulse (जलनेत्र पल्स)  
 
 ---
 
-## 1. Executive Summary
-JalaNetra addresses coastal urban groundwater vulnerability in Mangaluru (Dakshina Kannada, Karnataka). By combining 25 years of Central Ground Water Board (CGWB) quarterly observations, regional rainfall trends, and hyper-local citizen reports, JalaNetra gives households an advance action window: booking water tankers before local depletion causes price gouging and dry taps.
+## 1. Executive Summary & Primary Elevator Pitch
+> **“JalaNetra Pulse detects neighborhood water outages in real time from independent household reports. When multiple residents in the same ward report no water within 90 minutes, it raises a transparent community alert, notifies subscribed residents, and gives ward responders a structured incident timeline. Historical CGWB groundwater data provides vulnerability context, but current action is always driven by current community signals.”**
+
+### Mandatory Disclaimer
+> **“Community-reported issue — not an official municipal confirmation.”**
 
 ---
 
 ## 2. Track Relevance: Heat & Water
-- **Problem:** Intense tropical heat combined with rapid rainwater runoff through laterite terrain depletes shallow coastal aquifers rapidly from November through May.
-- **Intervention:** Actionable citizen-facing early warning, preventing domestic panic and smoothing municipal tanker demand.
+- **The Problem:** Coastal Karnataka receives over 3,500 mm of rainfall during the monsoon, but steep terrain and porous lateritic soils accelerate runoff into the Arabian Sea. By March, municipal rationing and borewell drying hit Mangaluru wards hard.
+- **The Gap in Existing Tools:** Dashboards relying on historical government data (quarterly CGWB wells from 1996–2020) cannot detect if taps ran dry this morning in Kodialbail or Surathkal.
+- **The JalaNetra Pulse Solution:** Couples crowdsourced 1-click citizen reports with an automated 90-minute clustering engine that detects localized water outages, alerts subscribed neighbors, and coordinates tanker response before crisis escalates.
 
 ---
 
 ## 3. Core Technical Pillars & AWS Architecture
-1. **Serverless Application Stack (AWS CDK v2):**
-   - Amazon API Gateway -> AWS Lambda (Python 3.11).
-   - Amazon DynamoDB for rapid single-table ward state and citizen feedback.
-2. **Citizen Communication Services:**
-   - Amazon SNS for automated localized SMS dispatches.
-   - Amazon Polly for synthesized regional voice-alert scripts (English & Hindi).
-3. **Future Edge Telemetry Roadmap:**
-   - AWS IoT Greengrass v2 containerized component for open-well ultrasonic transducers.
+1. **Real-Time Clustering Engine (Local SQLite / AWS DynamoDB):**
+   - 90-minute rolling window clusters independent reports.
+   - Trigger threshold: 3 independent `dry` reports in the same ward creates an active Community Water Alert.
+   - Deduplication: Single users are restricted to 1 report per ward/status per 30 minutes.
+   - Recovery threshold: 2 independent `restored` or `available` reports transition the incident to Community Recovery.
+2. **Production-Ready AWS CDK Architecture (`infra/`):**
+   - Amazon API Gateway HTTP API -> AWS Lambda (Python 3.11).
+   - DynamoDB tables: `water_reports`, `community_alerts`, `subscriptions`.
+   - Amazon EventBridge 6-hour evaluation cron & daily data refresh.
+   - Amazon SNS transactional SMS integration (safe test sandbox mode).
+   - AWS Amplify hosting for high-contrast PWA.
+   - *Cloud Status:* Codified via CDK; local demo runs with SQLite. No AWS cloud deployment or billing incurred.
+3. **Emergency SMS Dispatch Sandbox:**
+   - Safe by default: Returns payload preview when `SMS_LIVE_MODE=false`.
+   - Verified send: Dispatches via boto3 SNS ONLY to configured `SMS_TEST_PHONE` when explicitly confirmed.
+   - Never sends to crowdsourced user numbers.
 
 ---
 
-## 4. Key Differentiator: Rigorous Data Honesty & Transparency
-Unlike prototypes that simulate fake "live IoT data" without disclosure, JalaNetra explicitly declares:
-- **Real Historical Data:** 4,962 CGWB quarterly observations across 115 Dakshina Kannada wells from `gwl_manual_quarterly_cgwb_ka_1991_2020.csv`.
-- **Honest Cadence Disclosure:** *“Historical quarterly government groundwater observations; not live groundwater sensor data.”*
-- **Strict Stale-Data Guardrail (`MAX_CURRENT_FORECAST_AGE_DAYS = 180`):** Suppresses false present-day tanker booking dates when historical data exceeds 180 days, classifying records honestly as `historical_context`.
-- **What-if Scenario Simulator:** Provides clear, labeled simulation of hypothetical current conditions without polluting verified government historical records.
-- **Heuristic Parameter:** *“Configurable demonstration water-stress threshold (16 m depth-below-ground-level). It is a decision-support parameter, not a universal official dry-well standard.”*
-- **Hardware-Free Evaluation:** *“Simulated edge telemetry for a future optional AWS IoT Greengrass sensor-node roadmap. No physical edge device was used in this demo.”*
+## 4. Key Differentiators: Data Honesty & Responsible AI
+- **Separation of Real-Time vs Contextual Layers:** Historical CGWB groundwater data (4,962 records, 115 stations) is clearly separated from live community reports.
+- **Strict Stale-Data Guardrail:** Records older than 180 days are never extrapolated into false current alerts or speculative tanker bookings.
+- **Zero-Knowledge Privacy:** Phone numbers are never stored in raw form; only salted SHA-256 hashes and masked strings (`+XX-XXXXX-XXXXX`) are persisted.
+- **Simulation Transparency:** Demo scenario seeds are explicitly flagged with `simulation: true`.

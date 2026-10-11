@@ -57,3 +57,41 @@ When a verified observation is older than 180 days:
 - `days_to_dry_estimate` (`null`): Nullified to prevent false current alarms
 - `book_tanker_by` (`null`): Nullified to prevent false tanker scheduling dates for historical records
 - `recommended_action` (`string`): Guidance to record ground reports before making decisions
+
+## 7. JalaNetra Pulse Real-Time Outage Entities
+
+### `water_reports`
+| Column | Type | Description |
+|---|---|---|
+| `id` | `INTEGER PRIMARY KEY` | Autoincrement report ID |
+| `ward_id` | `TEXT` | Target ward identifier (e.g. `dk-kodialbail`) |
+| `status` | `TEXT` | `available` \| `low` \| `dry` \| `restored` |
+| `reporter_key_hash` | `TEXT` | SHA-256 hash of anonymous client/device identity (16 chars) |
+| `created_at` | `TEXT` | ISO-8601 UTC timestamp |
+| `phone_hash` | `TEXT NULL` | Salted SHA-256 hash of optional phone number |
+| `source` | `TEXT` | `live_user` \| `scenario_demo` |
+| `simulation` | `INTEGER` | `0` for real user reports, `1` for demo scenarios |
+
+### `community_alerts`
+| Column | Type | Description |
+|---|---|---|
+| `id` | `INTEGER PRIMARY KEY` | Alert incident identifier |
+| `ward_id` | `TEXT` | Affected ward identifier |
+| `status` | `TEXT` | `monitoring` \| `active` \| `recovery` |
+| `severity` | `TEXT` | `watch` \| `high` \| `critical` |
+| `independent_report_count` | `INTEGER` | Distinct reporters within rolling 90-minute window |
+| `first_report_at` | `TEXT` | Timestamp of earliest contributing dry report |
+| `latest_report_at` | `TEXT` | Timestamp of most recent dry report |
+| `confidence` | `TEXT` | `moderate` (3 reports) \| `high` (4+ reports) |
+| `trigger_reason` | `TEXT` | Human-readable explanation of cluster trigger |
+| `simulation` | `INTEGER` | `1` if triggered exclusively by simulated scenario reports |
+
+### `subscriptions`
+| Column | Type | Description |
+|---|---|---|
+| `id` | `INTEGER PRIMARY KEY` | Subscription ID |
+| `ward_id` | `TEXT` | Target ward identifier |
+| `phone_hash` | `TEXT` | Salted SHA-256 hash of subscriber phone |
+| `notification_channel` | `TEXT` | `in_app` \| `sms` |
+| `sms_verified` | `INTEGER` | `1` if verified in AWS SNS sandbox, `0` otherwise |
+| `created_at` | `TEXT` | ISO-8601 UTC timestamp |
